@@ -10,6 +10,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useAccount } from "wagmi";
 
 import Navbar from "@/app/components/Navbar";
 import { Button } from "@/app/components/ui/button";
@@ -38,157 +39,58 @@ import {
 } from "@/app/components/ui/select";
 import { Separator } from "@/app/components/ui/separator";
 import { useToast } from "@/app/components/ui/use-toast";
+import { Project, Milestone as MilestoneType } from "@/types/ProjectTypes";
 
-// Mock project data - in a real app, you would fetch this from an API
-const projects = [
-  {
-    id: "1",
-    title: "Community Garden Expansion",
-    category: "Environment",
-    description:
-      "Expanding the local community garden with new plots and irrigation system.",
-    fullDescription:
-      "The Community Garden Expansion project aims to double the size of our current garden, adding 20 new plots that will be available to local residents. We'll also install a modern irrigation system to conserve water while ensuring plants thrive. This expansion will help address food security issues in our neighborhood and create more green space for community gathering.",
-    raised: 12000,
-    goal: 15000,
-    deadline: "2023-08-15",
-    backersCount: 56,
-    status: "active",
-    image:
-      "https://images.unsplash.com/photo-1624598389798-b6f7aa846fc9?q=80&w=500",
-    creator: "Green Spaces Initiative",
-    creatorImage: "/images/creators/green-spaces.jpg",
-    updates: [
-      {
-        date: "2023-03-15",
-        title: "Land secured for expansion",
-        content:
-          "We're excited to announce that the city council has approved our request for the adjacent plot of land for our garden expansion!",
-      },
-      {
-        date: "2023-02-28",
-        title: "Planning phase completed",
-        content:
-          "We've finished the design plans for the garden expansion and irrigation system. Local architects have volunteered their services for this project.",
-      },
-    ],
-    milestones: [
-      {
-        title: "Land Acquisition",
-        description: "Secure the adjacent land from the city",
-        target: 2000,
-        completed: true,
-      },
-      {
-        title: "Irrigation System",
-        description: "Install water-efficient irrigation",
-        target: 7000,
-        completed: false,
-      },
-      {
-        title: "New Garden Plots",
-        description: "Build and prepare 20 new garden plots",
-        target: 6000,
-        completed: false,
-      },
-    ],
-  },
-  {
-    id: "2",
-    title: "Neighborhood Playground",
-    category: "Community",
-    description:
-      "Building a new playground with accessible equipment for all children.",
-    fullDescription:
-      "Our neighborhood lacks a safe, modern playground for children. This project will create an inclusive play space with equipment accessible to children of all abilities. We'll use sustainable materials and incorporate natural elements to create a welcoming environment for families.",
-    raised: 8500,
-    goal: 20000,
-    deadline: "2023-09-30",
-    backersCount: 42,
-    status: "active",
-    image:
-      "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?q=80&w=500",
-    creator: "Community First",
-    creatorImage: "/images/creators/community-first.jpg",
-    updates: [
-      {
-        date: "2023-03-10",
-        title: "Equipment selected",
-        content:
-          "After consulting with local families, we've selected the playground equipment that will be installed.",
-      },
-    ],
-    milestones: [
-      {
-        title: "Design Phase",
-        description: "Create playground designs with community input",
-        target: 2500,
-        completed: true,
-      },
-      {
-        title: "Equipment Purchase",
-        description: "Buy inclusive playground equipment",
-        target: 12000,
-        completed: false,
-      },
-      {
-        title: "Installation",
-        description: "Install equipment and safety surfacing",
-        target: 5500,
-        completed: false,
-      },
-    ],
-  },
-];
-
+// Define interface for updates as it's "any[]" in the type definition
 interface Update {
-  date: string;
   title: string;
   content: string;
+  date: string;
 }
 
-interface Milestone {
+// Adapt the MongoDB Milestone type to the form
+interface FormMilestone {
   title: string;
   description: string;
   target: number;
   completed: boolean;
 }
 
-interface Project {
-  id: string;
+interface FormData {
   title: string;
   category: string;
   description: string;
-  fullDescription: string;
-  raised: number;
-  goal: number;
+  fullDescription?: string;
+  fundingGoal: number;
   deadline: string;
-  backersCount: number;
-  status: string;
   image: string;
-  creator?: string;
-  creatorImage?: string;
+  creatorName?: string;
+  creatorBio?: string;
   updates: Update[];
-  milestones: Milestone[];
+  milestones: FormMilestone[];
 }
 
 export default function UpdateProjectPage() {
   const { id } = useParams();
   const router = useRouter();
   const { toast } = useToast();
+  const { address, isConnected } = useAccount();
 
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [unauthorized, setUnauthorized] = useState(false);
 
-  const [formData, setFormData] = useState<Partial<Project>>({
+  const [formData, setFormData] = useState<FormData>({
     title: "",
-    category: "",
+    category: "Other",
     description: "",
     fullDescription: "",
-    goal: 0,
+    fundingGoal: 0,
     deadline: "",
     image: "",
+    creatorName: "",
+    creatorBio: "",
     updates: [],
     milestones: [],
   });
@@ -199,7 +101,7 @@ export default function UpdateProjectPage() {
     content: "",
   });
 
-  const [newMilestone, setNewMilestone] = useState<Milestone>({
+  const [newMilestone, setNewMilestone] = useState<FormMilestone>({
     title: "",
     description: "",
     target: 0,
@@ -207,30 +109,67 @@ export default function UpdateProjectPage() {
   });
 
   useEffect(() => {
-    // In a real app, you would fetch the project data from an API
-    // For now, we'll use our mock data
-    const projectId = Array.isArray(id) ? id[0] : (id as string);
-    const foundProject = projects.find((p) => p.id === projectId);
-
-    // Simulate API loading
-    setTimeout(() => {
-      if (foundProject) {
-        setProject(foundProject);
-        setFormData({
-          title: foundProject.title,
-          category: foundProject.category,
-          description: foundProject.description,
-          fullDescription: foundProject.fullDescription,
-          goal: foundProject.goal,
-          deadline: foundProject.deadline,
-          image: foundProject.image,
-          updates: [...foundProject.updates],
-          milestones: [...foundProject.milestones],
-        });
+    const fetchProject = async () => {
+      if (!isConnected || !address) {
+        return;
       }
-      setLoading(false);
-    }, 500);
-  }, [id]);
+
+      setLoading(true);
+      try {
+        const projectId = Array.isArray(id) ? id[0] : (id as string);
+        const response = await fetch(`/api/projects?id=${projectId}`);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch project");
+        }
+
+        const projectData = await response.json();
+
+        // Check if the user is the creator of this project
+        if (projectData.creatorAddress !== address) {
+          setUnauthorized(true);
+          setLoading(false);
+          return;
+        }
+
+        setProject(projectData);
+
+        // Format dates and convert milestone format
+        const formattedMilestones =
+          projectData.milestones?.map((m: MilestoneType) => ({
+            title: m.description.split(":")[0] || "Milestone", // Extract title from description if possible
+            description: m.description,
+            target: m.targetAmount,
+            completed: m.isCompleted,
+          })) || [];
+
+        setFormData({
+          title: projectData.title,
+          category: projectData.category || "Other",
+          description: projectData.description,
+          fullDescription: projectData.description, // Use same description if no fullDescription exists
+          fundingGoal: projectData.fundingGoal,
+          deadline: new Date(projectData.deadline).toISOString().split("T")[0],
+          image: projectData.image,
+          creatorName: projectData.creatorName || "",
+          creatorBio: projectData.creatorBio || "",
+          updates: projectData.updates || [],
+          milestones: formattedMilestones,
+        });
+      } catch (error) {
+        console.error("Error fetching project:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load project data",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProject();
+  }, [id, address, isConnected, toast]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -240,7 +179,7 @@ export default function UpdateProjectPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "goal" ? Number(value) : value,
+      [name]: name === "fundingGoal" ? Number(value) : value,
     }));
   };
 
@@ -258,7 +197,7 @@ export default function UpdateProjectPage() {
     if (!newUpdate.title || !newUpdate.content) {
       toast({
         title: "Error",
-        description: "Please fill out both title and content for the update.",
+        description: "Please fill in both title and content for the update.",
         variant: "destructive",
       });
       return;
@@ -267,11 +206,16 @@ export default function UpdateProjectPage() {
     setFormData((prev) => ({
       ...prev,
       updates: [
+        {
+          title: newUpdate.title,
+          content: newUpdate.content,
+          date: newUpdate.date,
+        },
         ...(prev.updates || []),
-        { ...newUpdate, date: new Date().toISOString().split("T")[0] },
       ],
     }));
 
+    // Reset the form
     setNewUpdate({
       date: new Date().toISOString().split("T")[0],
       title: "",
@@ -279,21 +223,16 @@ export default function UpdateProjectPage() {
     });
 
     toast({
-      title: "Update added",
-      description: "Your update has been added to the project.",
+      title: "Update Added",
+      description: "The update has been added to your project.",
     });
   };
 
   const removeUpdate = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      updates: prev.updates?.filter((_, i) => i !== index),
+      updates: prev.updates.filter((_, i) => i !== index),
     }));
-
-    toast({
-      title: "Update removed",
-      description: "The update has been removed from your project.",
-    });
   };
 
   const handleMilestoneChange = (
@@ -314,14 +253,20 @@ export default function UpdateProjectPage() {
   };
 
   const addMilestone = () => {
-    if (
-      !newMilestone.title ||
-      !newMilestone.description ||
-      !newMilestone.target
-    ) {
+    if (!newMilestone.title || !newMilestone.description) {
       toast({
         title: "Error",
-        description: "Please fill out all milestone fields.",
+        description:
+          "Please provide both a title and description for the milestone.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newMilestone.target <= 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a target amount greater than zero.",
         variant: "destructive",
       });
       return;
@@ -329,9 +274,18 @@ export default function UpdateProjectPage() {
 
     setFormData((prev) => ({
       ...prev,
-      milestones: [...(prev.milestones || []), { ...newMilestone }],
+      milestones: [
+        ...prev.milestones,
+        {
+          title: newMilestone.title,
+          description: newMilestone.description,
+          target: newMilestone.target,
+          completed: newMilestone.completed,
+        },
+      ],
     }));
 
+    // Reset the form
     setNewMilestone({
       title: "",
       description: "",
@@ -340,27 +294,22 @@ export default function UpdateProjectPage() {
     });
 
     toast({
-      title: "Milestone added",
-      description: "Your milestone has been added to the project.",
+      title: "Milestone Added",
+      description: "The milestone has been added to your project.",
     });
   };
 
   const removeMilestone = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      milestones: prev.milestones?.filter((_, i) => i !== index),
+      milestones: prev.milestones.filter((_, i) => i !== index),
     }));
-
-    toast({
-      title: "Milestone removed",
-      description: "The milestone has been removed from your project.",
-    });
   };
 
   const toggleMilestoneCompleted = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      milestones: prev.milestones?.map((milestone, i) =>
+      milestones: prev.milestones.map((milestone, i) =>
         i === index
           ? { ...milestone, completed: !milestone.completed }
           : milestone
@@ -369,12 +318,7 @@ export default function UpdateProjectPage() {
   };
 
   const saveProject = async () => {
-    if (
-      !formData.title ||
-      !formData.description ||
-      !formData.fullDescription ||
-      !formData.goal
-    ) {
+    if (!formData.title || !formData.description || !formData.fundingGoal) {
       toast({
         title: "Error",
         description: "Please fill out all required fields.",
@@ -385,18 +329,80 @@ export default function UpdateProjectPage() {
 
     setSaving(true);
 
-    // Simulate API call to save project
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      // Convert form milestones to DB format
+      const dbMilestones = formData.milestones.map((m) => ({
+        description: m.description,
+        targetAmount: m.target,
+        isCompleted: m.completed,
+      }));
+
+      // Prepare data for API call
+      const projectId = Array.isArray(id) ? id[0] : (id as string);
+      const updateData = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        fundingGoal: formData.fundingGoal,
+        image: formData.image,
+        creatorName: formData.creatorName,
+        creatorBio: formData.creatorBio,
+        updates: formData.updates,
+        milestones: dbMilestones,
+      };
+
+      // Update the project via the API
+      const response = await fetch(`/api/projects?id=${projectId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update project");
+      }
+
       toast({
         title: "Success",
         description: "Project has been updated successfully!",
       });
 
       // Navigate back to project page
-      router.push(`/platform/project/${id}`);
-    }, 1500);
+      router.push(`/platform/project/${projectId}`);
+    } catch (error) {
+      console.error("Error updating project:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update project. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (!isConnected) {
+    return (
+      <div className="flex flex-col min-h-screen bg-white">
+        <Navbar />
+        <div className="flex items-center justify-center flex-grow">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-800">
+              Wallet Not Connected
+            </h2>
+            <p className="mt-2 text-gray-600">
+              Please connect your wallet to edit your project.
+            </p>
+            <Link href="/platform/dashboard">
+              <Button className="mt-6">Back to Dashboard</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -406,6 +412,27 @@ export default function UpdateProjectPage() {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading project details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (unauthorized) {
+    return (
+      <div className="flex flex-col min-h-screen bg-white">
+        <Navbar />
+        <div className="flex items-center justify-center flex-grow">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-800">
+              Unauthorized Access
+            </h2>
+            <p className="mt-2 text-gray-600">
+              You don't have permission to edit this project.
+            </p>
+            <Link href="/platform/dashboard">
+              <Button className="mt-6">Back to Dashboard</Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -422,8 +449,7 @@ export default function UpdateProjectPage() {
               Project Not Found
             </h2>
             <p className="mt-2 text-gray-600">
-              The project you're looking for doesn't exist or you don't have
-              access to edit it.
+              The project you're looking for doesn't exist.
             </p>
             <Link href="/platform/dashboard">
               <Button className="mt-6">Back to Dashboard</Button>
@@ -496,31 +522,43 @@ export default function UpdateProjectPage() {
                         <SelectItem value="Environment">Environment</SelectItem>
                         <SelectItem value="Education">Education</SelectItem>
                         <SelectItem value="Health">Health</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Short Description</Label>
+                    <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      placeholder="Brief description of your project (displayed in cards)"
-                      rows={2}
+                      placeholder="Description of your project"
+                      rows={5}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="fullDescription">Full Description</Label>
-                    <Textarea
-                      id="fullDescription"
-                      name="fullDescription"
-                      value={formData.fullDescription}
+                    <Label htmlFor="creatorName">Creator Name (Optional)</Label>
+                    <Input
+                      id="creatorName"
+                      name="creatorName"
+                      value={formData.creatorName}
                       onChange={handleInputChange}
-                      placeholder="Detailed description of your project"
-                      rows={5}
+                      placeholder="Your name or organization name"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="creatorBio">Creator Bio (Optional)</Label>
+                    <Textarea
+                      id="creatorBio"
+                      name="creatorBio"
+                      value={formData.creatorBio}
+                      onChange={handleInputChange}
+                      placeholder="Brief bio about you or your organization"
+                      rows={3}
                     />
                   </div>
                 </CardContent>
@@ -533,12 +571,12 @@ export default function UpdateProjectPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="goal">Funding Goal</Label>
+                      <Label htmlFor="fundingGoal">Funding Goal</Label>
                       <Input
-                        id="goal"
-                        name="goal"
+                        id="fundingGoal"
+                        name="fundingGoal"
                         type="number"
-                        value={formData.goal}
+                        value={formData.fundingGoal}
                         onChange={handleInputChange}
                         placeholder="Enter amount"
                       />
