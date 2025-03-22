@@ -50,9 +50,9 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             Start a Project
           </Link>
           <Link
-            href="/about"
+            href="/platform/about"
             className={`${
-              isLinkActive("/about")
+              isLinkActive("/platform/about")
                 ? "text-blue-600 font-medium"
                 : "text-gray-600"
             } hover:text-gray-800`}

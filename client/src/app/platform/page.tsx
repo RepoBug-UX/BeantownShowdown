@@ -183,9 +183,9 @@ export default function BasicWallet() {
               Fund innovative projects with blockchain simplicity
             </p>
             <div className="flex justify-center space-x-4">
-              <Button size="lg" onClick={() => setShowWallet(true)}>
-                Launch Project
-              </Button>
+              <Link href="/platform/create">
+                <Button size="lg">Launch Project</Button>
+              </Link>
               <Link href="/platform/explore">
                 <Button variant="outline" size="lg">
                   <Search className="mr-2 h-5 w-5" /> Explore
@@ -196,54 +196,40 @@ export default function BasicWallet() {
 
           <section className="mb-16">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-              Categories
-            </h2>
-            <div className="flex flex-wrap gap-4">
-              {[
-                "Technology",
-                "Art",
-                "Games",
-                "Music",
-                "Film",
-                "Environment",
-                "Social",
-                "Innovation",
-              ].map((category) => (
-                <Button key={category} variant="outline" className="bg-gray-50">
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </section>
-
-          <section className="mb-16">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
               Featured Projects
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[1, 2, 3].map((project) => (
-                <Card key={project} className="border-0 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Project {project}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="aspect-video bg-gray-100 rounded-md mb-4"></div>
-                    <Progress value={33} className="mb-2" />
-                    <div className="flex justify-between text-sm text-gray-500">
-                      <span>$33,000 raised</span>
-                      <span>30 days left</span>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setShowWallet(true)}
-                    >
-                      Back this project
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <Link href={`/platform/project/${project}`} key={project}>
+                  <Card className="border-0 shadow-sm h-full">
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        Project {project}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="aspect-video bg-gray-100 rounded-md mb-4"></div>
+                      <Progress value={33} className="mb-2" />
+                      <div className="flex justify-between text-sm text-gray-500">
+                        <span>$33,000 raised</span>
+                        <span>30 days left</span>
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // In a real app, this would open a backing modal
+                          alert("Backing functionality would open here");
+                        }}
+                      >
+                        Back this project
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </Link>
               ))}
             </div>
           </section>

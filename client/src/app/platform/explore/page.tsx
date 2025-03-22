@@ -168,46 +168,54 @@ export default function ExplorePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProjects.length > 0 ? (
               filteredProjects.map((project) => (
-                <Card
-                  key={project.id}
-                  className="border-0 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <CardHeader>
-                    <CardTitle className="text-lg font-semibold">
-                      {project.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="aspect-video bg-gray-100 rounded-md mb-4 overflow-hidden">
-                      {/* Placeholder for project image */}
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                        Project Image
+                <Link href={`/platform/project/${project.id}`} key={project.id}>
+                  <Card className="border-0 shadow-sm hover:shadow-md transition-shadow h-full">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold">
+                        {project.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="aspect-video bg-gray-100 rounded-md mb-4 overflow-hidden">
+                        {/* Placeholder for project image */}
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                          Project Image
+                        </div>
                       </div>
-                    </div>
-                    <p className="text-gray-600 mb-4 line-clamp-2">
-                      {project.description}
-                    </p>
-                    <Progress
-                      value={(project.raised / project.goal) * 100}
-                      className="mb-2"
-                    />
-                    <div className="flex justify-between text-sm text-gray-500 mb-3">
-                      <span>${project.raised.toLocaleString()} raised</span>
-                      <span>${project.goal.toLocaleString()} goal</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">
-                        {project.backers} backers
-                      </span>
-                      <span className="text-gray-500">
-                        {project.daysLeft} days left
-                      </span>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button className="w-full">Back this project</Button>
-                  </CardFooter>
-                </Card>
+                      <p className="text-gray-600 mb-4 line-clamp-2">
+                        {project.description}
+                      </p>
+                      <Progress
+                        value={(project.raised / project.goal) * 100}
+                        className="mb-2"
+                      />
+                      <div className="flex justify-between text-sm text-gray-500 mb-3">
+                        <span>${project.raised.toLocaleString()} raised</span>
+                        <span>${project.goal.toLocaleString()} goal</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">
+                          {project.backers} backers
+                        </span>
+                        <span className="text-gray-500">
+                          {project.daysLeft} days left
+                        </span>
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button
+                        className="w-full"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // In a real app, this would open a backing modal
+                          alert("Backing functionality would open here");
+                        }}
+                      >
+                        Back this project
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </Link>
               ))
             ) : (
               <div className="col-span-full text-center py-10 text-gray-500">
@@ -226,7 +234,9 @@ export default function ExplorePage() {
               Have a brilliant idea? Launch your project on Snowball and connect
               with backers passionate about innovation on Avalanche.
             </p>
-            <Button size="lg">Start a Project</Button>
+            <Link href="/platform/create">
+              <Button size="lg">Start a Project</Button>
+            </Link>
           </div>
         </section>
       </main>
