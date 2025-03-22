@@ -40,7 +40,7 @@ export default function ExplorePage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [activeCategory, setActiveCategory] = useState<string>("All Projects");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
