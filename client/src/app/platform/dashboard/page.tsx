@@ -249,7 +249,9 @@ export default function Dashboard() {
                       <Link href={`/platform/project/${project.id}`}>
                         <Button variant="outline">View Project</Button>
                       </Link>
-                      <Button>Update</Button>
+                      <Link href={`/platform/project/update/${project.id}`}>
+                        <Button>Update</Button>
+                      </Link>
                     </CardFooter>
                   </Card>
                 ))}
