@@ -271,6 +271,7 @@ export default function ProjectPage() {
                 <Button
                   variant="outline"
                   className="w-full flex items-center justify-center"
+                  onClick={() => {window.open("https://media.licdn.com/dms/image/v2/C4E03AQH-7MawU6UQmg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1634521118617?e=1747872000&v=beta&t=SPLf1c5GytYiUQ-bFtpIA5jdp42ZWP5ilAcCyXNKrs4")}}
                 >
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
