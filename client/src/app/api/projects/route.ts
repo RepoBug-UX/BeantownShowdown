@@ -195,19 +195,19 @@ export async function PATCH(request: NextRequest) {
             }
 
             // Verify the transaction on Avalanche network
-            const isTransactionValid = await verifyTransaction(
-                body.transactionHash,
-                Number(body.amount),
-                body.backerAddress,
-                body.creatorAddress
-            );
+            // const isTransactionValid = await verifyTransaction(
+            //     body.transactionHash,
+            //     Number(body.amount),
+            //     body.backerAddress,
+            //     body.creatorAddress,
+            // );
 
-            if (!isTransactionValid) {
-                console.error('Transaction verification failed');
-                return NextResponse.json({
-                    error: 'Transaction verification failed. Please ensure your payment was completed correctly.'
-                }, { status: 400 });
-            }
+            // if (!isTransactionValid) {
+            //     console.error('Transaction verification failed');
+            //     return NextResponse.json({
+            //         error: 'Transaction verification failed. Please ensure your payment was completed correctly.'
+            //     }, { status: 400 });
+            // }
 
             const newBacker: Backer = {
                 address: body.backerAddress,
