@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb";
 
 export async function POST(request: Request) {
     try {
-        const { projectId, milestoneId, voterAddress, vote } = await request.json();
+        const { projectId, milestoneId, voterAddress, vote, signature } = await request.json();
 
         // Validate request
         if (!projectId || !milestoneId || !voterAddress || !vote) {
@@ -18,6 +18,7 @@ export async function POST(request: Request) {
         const client = await clientPromise;
         const db = client.db("beantown");
         const projectsCollection = db.collection("projects");
+        const usersCollection = db.collection("users");
 
         // Check if project exists
         const projectObjectId = new ObjectId(projectId);
@@ -39,6 +40,26 @@ export async function POST(request: Request) {
             return NextResponse.json(
                 { error: "Only backers can vote on milestone disbursements" },
                 { status: 403 }
+            );
+        }
+
+        // Check if user has a verified signature
+        const user = await usersCollection.findOne({ address: voterAddress.toLowerCase() });
+        if (!user || !user.lastVerifiedSignature) {
+            return NextResponse.json(
+                { error: "Wallet signature verification required before voting" },
+                { status: 401 }
+            );
+        }
+
+        // Verify the signature is recent (within the last hour)
+        const lastVerifiedTime = user.lastVerifiedTimestamp ? new Date(user.lastVerifiedTimestamp) : null;
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+        if (!lastVerifiedTime || lastVerifiedTime < oneHourAgo) {
+            return NextResponse.json(
+                { error: "Signature verification expired. Please sign again." },
+                { status: 401 }
             );
         }
 

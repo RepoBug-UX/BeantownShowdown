@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useSignMessage } from "wagmi";
 import { Button } from "@/app/components/ui/button";
 import { Progress } from "@/app/components/ui/progress";
 import { Separator } from "@/app/components/ui/separator";
-import { Vote, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { Vote, CheckCircle2, AlertCircle, Clock, Shield } from "lucide-react";
 import { formatAddress, cn } from "@/app/lib/utils";
+import { toast } from "sonner";
 
 interface Milestone {
   id: number;
@@ -41,6 +42,25 @@ export default function DaoVoting({
   const [votingStatus, setVotingStatus] = useState<Record<number, string>>({});
   const [isVoting, setIsVoting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSignatureVerified, setIsSignatureVerified] =
+    useState<boolean>(false);
+  const [isVerifyingSignature, setIsVerifyingSignature] =
+    useState<boolean>(false);
+
+  // Setup the signMessage hook
+  const { signMessage } = useSignMessage({
+    mutation: {
+      onSuccess(data) {
+        // The signature was successful, now verify with the backend
+        verifySignature(data);
+      },
+      onError(error) {
+        console.error("Error signing message:", error);
+        setError("Failed to sign message with wallet. Please try again.");
+        setIsVerifyingSignature(false);
+      },
+    },
+  });
 
   // Find the first incomplete milestone to set as active by default
   useEffect(() => {
@@ -51,6 +71,29 @@ export default function DaoVoting({
       }
     }
   }, [milestones]);
+
+  // Check if user has a verified signature
+  useEffect(() => {
+    const checkSignatureStatus = async () => {
+      if (address && isConnected && userIsBacker) {
+        try {
+          const response = await fetch(
+            `/api/auth/signature-status?address=${address}`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            setIsSignatureVerified(data.isVerified === true);
+          }
+        } catch (error) {
+          console.error("Error checking signature status:", error);
+        }
+      } else {
+        setIsSignatureVerified(false);
+      }
+    };
+
+    checkSignatureStatus();
+  }, [address, isConnected, userIsBacker]);
 
   // Fetch votes from API
   useEffect(() => {
@@ -119,6 +162,65 @@ export default function DaoVoting({
     }
   }, [projectId, milestones]);
 
+  const verifySignature = async (signature: `0x${string}`) => {
+    if (!address) return;
+
+    try {
+      // Send the signature to the backend for verification
+      const message = "Verify my wallet for DAO voting on BeantownShowdown"; // Standard message
+      const response = await fetch("/api/auth/verify-signature", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          address,
+          signature,
+          message,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to verify signature");
+      }
+
+      const data = await response.json();
+      if (data.verified) {
+        setIsSignatureVerified(true);
+        toast.success("Wallet verified successfully!");
+      } else {
+        throw new Error("Signature verification failed");
+      }
+    } catch (err: any) {
+      console.error("Error verifying signature:", err);
+      setError(err.message || "Failed to verify signature");
+    } finally {
+      setIsVerifyingSignature(false);
+    }
+  };
+
+  const initiateSignature = () => {
+    if (!isConnected || !address) {
+      setError("Please connect your wallet to vote");
+      return;
+    }
+
+    if (!userIsBacker) {
+      setError("Only backers can vote on milestone disbursements");
+      return;
+    }
+
+    setIsVerifyingSignature(true);
+    setError(null);
+
+    // The message to sign - keep it simple and consistent
+    const message = "Verify my wallet for DAO voting on BeantownShowdown";
+
+    // Trigger the signature request
+    signMessage({ message });
+  };
+
   const hasUserVoted = (milestoneId: number): boolean => {
     if (!address || !votes[milestoneId]) return false;
     return votes[milestoneId].some(
@@ -161,6 +263,11 @@ export default function DaoVoting({
       return;
     }
 
+    if (!isSignatureVerified) {
+      setError("Please verify your wallet signature before voting");
+      return;
+    }
+
     setIsVoting(true);
     setError(null);
 
@@ -200,6 +307,8 @@ export default function DaoVoting({
       if (onVoteSuccess) {
         onVoteSuccess();
       }
+
+      toast.success("Your vote has been recorded successfully!");
     } catch (err: any) {
       console.error("Error voting:", err);
       setError(
@@ -269,6 +378,30 @@ export default function DaoVoting({
       {!userIsBacker && (
         <div className="mb-4 p-3 bg-amber-50 text-amber-700 rounded-md text-sm">
           You must be a backer to participate in milestone voting.
+        </div>
+      )}
+
+      {userIsBacker && !isSignatureVerified && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <div className="flex items-center mb-2">
+            <Shield className="h-5 w-5 mr-2 text-blue-600" />
+            <span className="font-medium text-blue-800">
+              Wallet Verification Required
+            </span>
+          </div>
+          <p className="text-sm text-blue-700 mb-3">
+            For security reasons, we need to verify you own this wallet before
+            you can vote. This requires signing a message (not a transaction)
+            and won't cost any gas.
+          </p>
+          <Button
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700"
+            onClick={initiateSignature}
+            disabled={isVerifyingSignature}
+          >
+            {isVerifyingSignature ? "Verifying..." : "Verify Wallet"}
+          </Button>
         </div>
       )}
 
@@ -353,7 +486,7 @@ export default function DaoVoting({
                         size="sm"
                         className="flex-1 bg-green-600 hover:bg-green-700"
                         onClick={() => handleVote(milestone.id, "yes")}
-                        disabled={isVoting}
+                        disabled={isVoting || !isSignatureVerified}
                       >
                         Vote Yes
                       </Button>
@@ -361,7 +494,7 @@ export default function DaoVoting({
                         size="sm"
                         className="flex-1 bg-red-600 hover:bg-red-700"
                         onClick={() => handleVote(milestone.id, "no")}
-                        disabled={isVoting}
+                        disabled={isVoting || !isSignatureVerified}
                       >
                         Vote No
                       </Button>
