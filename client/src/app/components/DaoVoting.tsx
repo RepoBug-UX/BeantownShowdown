@@ -74,7 +74,7 @@ export default function DaoVoting({
 
   // Check if user has a verified signature
   useEffect(() => {
-    const checkSignatureStatus = async () => {
+    /* const checkSignatureStatus = async () => {
       if (address && isConnected && userIsBacker) {
         try {
           const response = await fetch(
@@ -92,7 +92,7 @@ export default function DaoVoting({
       }
     };
 
-    checkSignatureStatus();
+    checkSignatureStatus(); */
   }, [address, isConnected, userIsBacker]);
 
   // Fetch votes from API
