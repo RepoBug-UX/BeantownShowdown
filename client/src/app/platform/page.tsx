@@ -20,6 +20,7 @@ import {
 } from "@/app/components/ui/card";
 import { Progress } from "@/app/components/ui/progress";
 import { Snowflake, Wallet, Search, Menu } from "lucide-react";
+import Navbar from "@/app/components/Navbar";
 
 // Add this interface to extend TransactionDetails with the properties you need
 interface ExtendedTransactionDetails extends TransactionDetails {
@@ -171,43 +172,7 @@ export default function BasicWallet() {
   if (!showWallet) {
     return (
       <div className="flex flex-col min-h-screen bg-white">
-        <header className="border-b">
-          <div className="container mx-auto px-4 py-4 grid grid-cols-3 items-center">
-            <div className="flex items-center">
-              <Link href="/" className="flex items-center space-x-2">
-                <Snowflake className="h-6 w-6 text-gray-800" />
-                <span className="text-xl font-semibold text-gray-800">
-                  Snowball
-                </span>
-              </Link>
-            </div>
-            <nav className="hidden md:flex justify-center space-x-6">
-              <Link
-                href="/platform/explore"
-                className="text-gray-600 hover:text-gray-800"
-              >
-                Explore
-              </Link>
-              <Link href="/start" className="text-gray-600 hover:text-gray-800">
-                Start a Project
-              </Link>
-              <Link href="/about" className="text-gray-600 hover:text-gray-800">
-                About
-              </Link>
-            </nav>
-            <div className="flex items-center justify-end space-x-4">
-              <ConnectButton />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                onClick={() => setShowWallet(true)}
-              >
-                <Menu className="h-6 w-6" />
-              </Button>
-            </div>
-          </div>
-        </header>
+        <Navbar onMenuClick={() => setShowWallet(true)} />
 
         <main className="flex-grow container mx-auto px-4 py-12">
           <section className="text-center mb-16">

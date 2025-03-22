@@ -16,6 +16,7 @@ import {
 import { Input } from "@/app/components/ui/input";
 import { Progress } from "@/app/components/ui/progress";
 import { Snowflake, Search, Menu, Filter } from "lucide-react";
+import Navbar from "@/app/components/Navbar";
 
 export default function ExplorePage() {
   const { isConnected } = useAccount();
@@ -122,46 +123,9 @@ export default function ExplorePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 grid grid-cols-3 items-center">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <Snowflake className="h-6 w-6 text-gray-800" />
-              <span className="text-xl font-semibold text-gray-800">
-                Snowball
-              </span>
-            </Link>
-          </div>
-          <nav className="hidden md:flex justify-center space-x-6">
-            <Link
-              href="/platform/explore"
-              className="text-blue-600 font-medium hover:text-blue-800"
-            >
-              Explore
-            </Link>
-            <Link
-              href="/platform/start"
-              className="text-gray-600 hover:text-gray-800"
-            >
-              Start a Project
-            </Link>
-            <Link
-              href="/platform/about"
-              className="text-gray-600 hover:text-gray-800"
-            >
-              About
-            </Link>
-          </nav>
-          <div className="flex items-center justify-end space-x-4">
-            <ConnectButton />
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-6 w-6" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
-      <main className="flex-grow container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-8">
         <section className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
             Explore Projects
