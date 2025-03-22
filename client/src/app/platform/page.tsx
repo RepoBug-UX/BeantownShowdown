@@ -346,9 +346,10 @@ export default function BasicWallet() {
                           variant="outline"
                           className="w-full"
                           onClick={(e) => {
-                            e.preventDefault();
-                            // In a real app, this would open a backing modal
-                            alert("Backing functionality would open here");
+                            // Prevent the default link behavior so we can add our own click handler
+                            e.stopPropagation();
+                            // Navigate to the project page
+                            window.location.href = `/platform/project/${project._id}`;
                           }}
                         >
                           Back this project
