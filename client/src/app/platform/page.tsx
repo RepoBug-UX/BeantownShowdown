@@ -10,15 +10,15 @@ import {
   TransactionDetails,
 } from "@avalabs/avacloud-sdk/models/components";
 import { Erc721TokenBalance } from "@avalabs/avacloud-sdk/models/components/erc721tokenbalance";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+} from "@/app/components/ui/card";
+import { Progress } from "@/app/components/ui/progress";
 import { Snowflake, Wallet, Search, Menu } from "lucide-react";
 
 // Add this interface to extend TransactionDetails with the properties you need
@@ -183,7 +183,7 @@ export default function BasicWallet() {
             </div>
             <nav className="hidden md:flex justify-center space-x-6">
               <Link
-                href="/projects"
+                href="/platform/explore"
                 className="text-gray-600 hover:text-gray-800"
               >
                 Explore
@@ -221,9 +221,11 @@ export default function BasicWallet() {
               <Button size="lg" onClick={() => setShowWallet(true)}>
                 Launch Project
               </Button>
-              <Button variant="outline" size="lg">
-                <Search className="mr-2 h-5 w-5" /> Explore
-              </Button>
+              <Link href="/platform/explore">
+                <Button variant="outline" size="lg">
+                  <Search className="mr-2 h-5 w-5" /> Explore
+                </Button>
+              </Link>
             </div>
           </section>
 
