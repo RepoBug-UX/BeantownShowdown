@@ -251,8 +251,8 @@ export default function BackProject({
     try {
       // Log detailed information about the backing request
       const requestData = {
-        projectId,
-        address,
+        addBacker: true,
+        backerAddress: address,
         amount: Number(amount),
         transactionHash,
         creatorAddress,
@@ -270,13 +270,7 @@ export default function BackProject({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          addBacker: true,
-          backerAddress: address,
-          amount: Number(amount), // Ensure amount is a number
-          transactionHash: transactionHash,
-          creatorAddress: creatorAddress,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       // Log the response status for debugging
