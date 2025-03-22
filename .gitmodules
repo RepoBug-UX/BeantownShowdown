@@ -14,3 +14,12 @@
 [submodule "lib/lib/forge-std"]
 	path = lib/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "lib/lib/avalanche-interchain-token-transfer"]
+	path = lib/lib/avalanche-interchain-token-transfer
+	url = https://github.com/ava-labs/avalanche-interchain-token-transfer
+[submodule "lib/lib/openzeppelin-contracts"]
+	path = lib/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "lib/lib/teleporter"]
+	path = lib/lib/teleporter
+	url = https://github.com/ava-labs/teleporter
