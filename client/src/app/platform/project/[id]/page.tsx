@@ -30,52 +30,7 @@ import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import BackProject from "@/app/components/BackProject";
 import DaoVoting from "@/app/components/DaoVoting";
-
-// Define the Project interface
-interface Backer {
-  address: string;
-  amount: number;
-  timestamp: string;
-}
-
-interface Milestone {
-  description: string;
-  targetAmount: number;
-  isCompleted: boolean;
-  submissionDetails?: string;
-}
-
-interface Comment {
-  _id: string;
-  projectId: string;
-  userAddress: string;
-  content: string;
-  timestamp: string;
-}
-
-interface Project {
-  _id: string;
-  title: string;
-  description: string;
-  fullDescription?: string;
-  category: string;
-  fundingGoal: number;
-  raised: number;
-  backersCount: number;
-  deadline: string;
-  status: string;
-  image: string;
-  // New fields for creator and backers
-  creatorAddress: string;
-  creatorName?: string;
-  creatorBio?: string;
-  backers: Backer[];
-  // Other fields
-  milestones?: Milestone[];
-  updates?: any[];
-  comments?: Comment[];
-  upvotes: string[];
-}
+import { Project, Milestone as MilestoneType, Update, Comment } from "@/types/ProjectTypes";
 
 export default function ProjectPage() {
   const { id } = useParams();
@@ -508,7 +463,7 @@ export default function ProjectPage() {
             <h2 className="text-2xl font-semibold mb-6">Project Updates</h2>
             {project.updates && project.updates.length > 0 ? (
               <div className="space-y-6">
-                {project.updates.map((update: any, index: number) => (
+                {project.updates.map((update: Update, index: number) => (
                   <div key={index} className="border-b pb-6 mb-6 last:border-0">
                     <div className="flex items-center mb-3">
                       <Calendar className="h-4 w-4 mr-2 text-gray-500" />

@@ -126,21 +126,18 @@ export async function POST(request: NextRequest) {
             fundingGoal: Number(body.fundingGoal),
             raised: 0,
             backersCount: 0,
-            // Track creator address
             creatorAddress: body.creator,
-            // Store creator details if provided
             creatorName: body.creatorName || '',
             creatorBio: body.creatorBio || '',
-            // Initialize empty backers array
             backers: [],
             duration: Number(body.duration) || 30,
-            deadline: new Date(Date.now() + (body.duration || 30) * 24 * 60 * 60 * 1000),
+            deadline: new Date(Date.now() + (body.duration || 30) * 24 * 60 * 60 * 1000).toISOString(),
             status: 'active',
             image: body.image || '',
-            createdAt: new Date(),
+            createdAt: new Date().toISOString(),
             milestones: body.milestones || [],
             updates: [],
-            upvotes: [] // Initialize upvotes as empty array
+            upvotes: []
         }
 
         // Insert the new project
@@ -212,7 +209,7 @@ export async function PATCH(request: NextRequest) {
             const newBacker: Backer = {
                 address: body.backerAddress,
                 amount: Number(body.amount),
-                timestamp: new Date(),
+                timestamp: new Date().toISOString(),
                 transactionHash: body.transactionHash // Store the transaction hash
             }
 
@@ -222,9 +219,9 @@ export async function PATCH(request: NextRequest) {
             const updateResult = await collection.updateOne(
                 { _id: new ObjectId(id) },
                 {
-                    $push: { backers: newBacker as any }, // Cast to any to satisfy TypeScript
+                    $push: { "backers": newBacker },
                     $inc: { backersCount: 1, raised: Number(body.amount) }
-                }
+                } as any // Type assertion needed for MongoDB complex update operation
             )
 
             console.log('Update result:', updateResult);
@@ -248,6 +245,46 @@ export async function PATCH(request: NextRequest) {
             }, { status: 200 })
         }
 
+        // Handle adding an update
+        if (body.updates) {
+            // Validate update fields
+            for (const update of body.updates) {
+                if (!update.title || !update.content || !update.date) {
+                    return NextResponse.json({
+                        error: 'Each update must have a title, content, and date'
+                    }, { status: 400 });
+                }
+            }
+
+            // Add the updates to the updates array using $push to maintain history
+            const updateResult = await collection.updateOne(
+                { _id: new ObjectId(id) },
+                { 
+                    $push: { 
+                        "updates": { 
+                            $each: body.updates,
+                            $position: 0 // Add new updates at the beginning of the array
+                        } 
+                    } 
+                } as any // Type assertion needed for MongoDB complex update operation
+            )
+
+            if (updateResult.matchedCount === 0) {
+                return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+            }
+
+            if (updateResult.modifiedCount === 0) {
+                return NextResponse.json({
+                    error: 'Failed to update project updates'
+                }, { status: 400 });
+            }
+
+            return NextResponse.json({
+                message: 'Project updates saved successfully',
+                updated: true
+            }, { status: 200 })
+        }
+
         // Prepare the update data for other fields
         const updateData: Partial<Project> = {}
 
@@ -258,7 +295,7 @@ export async function PATCH(request: NextRequest) {
         if (body.fundingGoal) updateData.fundingGoal = Number(body.fundingGoal)
         if (body.duration) {
             updateData.duration = Number(body.duration)
-            updateData.deadline = new Date(Date.now() + body.duration * 24 * 60 * 60 * 1000)
+            updateData.deadline = new Date(Date.now() + body.duration * 24 * 60 * 60 * 1000).toISOString()
         }
         if (body.image) updateData.image = body.image
         if (body.milestones) updateData.milestones = body.milestones
