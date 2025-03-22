@@ -30,6 +30,16 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
         </div>
         <nav className="hidden md:flex justify-center space-x-6">
           <Link
+            href="/platform/dashboard"
+            className={`${
+              isLinkActive("/platform/dashboard")
+                ? "text-blue-600 font-medium"
+                : "text-gray-600"
+            } hover:text-gray-800`}
+          >
+            Dashboard
+          </Link>
+          <Link
             href="/platform/explore"
             className={`${
               isLinkActive("/platform/explore")
