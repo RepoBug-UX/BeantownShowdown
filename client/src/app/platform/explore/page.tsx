@@ -75,39 +75,26 @@ export default function ExplorePage() {
   };
 
   const categories = [
-    "all",
-    "tech",
-    "art",
-    "community",
-    "defi",
-    "gaming",
-    "other",
+    "All Projects",
+    "Art",
+    "Technology",
+    "Games",
+    "Film & Video",
+    "Music",
+    "Publishing",
+    "Food",
+    "Fashion",
+    "Design",
+    "Community",
+    "Other",
   ];
 
-  // For display purposes - map category values to readable labels
-  const getCategoryLabel = (category: string): string => {
-    switch (category) {
-      case "tech":
-        return "Technology";
-      case "art":
-        return "Art & Creative";
-      case "community":
-        return "Community";
-      case "defi":
-        return "DeFi";
-      case "gaming":
-        return "Gaming";
-      case "other":
-        return "Other";
-      default:
-        return "All Projects";
-    }
-  };
+
 
   // Filter projects based on category and search query
   const filteredProjects = projects.filter((project) => {
     const matchesCategory =
-      activeCategory === "all" || project.category === activeCategory;
+      activeCategory === "All Projects" || project.category === activeCategory;
     const matchesSearch =
       project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -149,7 +136,7 @@ export default function ExplorePage() {
                 }
                 onClick={() => setActiveCategory(category)}
               >
-                {getCategoryLabel(category)}
+                {category}
               </Button>
             ))}
           </div>
