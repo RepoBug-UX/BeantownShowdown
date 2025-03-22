@@ -1,39 +1,26 @@
 'use client';
 
-import { WagmiConfig, createConfig, configureChains } from 'wagmi';
+import { WagmiConfig, createConfig } from 'wagmi';
 import { avalanche } from 'wagmi/chains';
-import { InjectedConnector } from 'wagmi/connectors/injected';
-import { WalletConnectConnector } from 'wagmi/connectors/walletConnect';
-import { publicProvider } from 'wagmi/providers/public';
+import { injected } from 'wagmi/connectors';
+import { walletConnect } from '@wagmi/connectors';
+import { http } from 'viem';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-// Create wagmi config
-const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [avalanche],
-  [publicProvider()]
-);
 
 const WALLET_CONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'glacier-starter-kit';
 
 const config = createConfig({
-  autoConnect: true,
+  chains: [avalanche],
+  transports: {
+    [avalanche.id]: http(),
+  },
   connectors: [
-    new InjectedConnector({
-      chains,
-      options: {
-        shimDisconnect: true,
-      },
-    }),
-    new WalletConnectConnector({
-      chains,
-      options: {
-        projectId: WALLET_CONNECT_PROJECT_ID,
-        showQrModal: true,
-      },
+    injected(),
+    walletConnect({ 
+      projectId: WALLET_CONNECT_PROJECT_ID,
+      showQrModal: true,
     }),
   ],
-  publicClient,
-  webSocketPublicClient,
 });
 
 // Create a client
