@@ -1,40 +1,47 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Clock, Upload, Snowflake, Plus, Trash2, Wallet } from "lucide-react"
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Clock, Upload, Snowflake, Plus, Trash2, Wallet } from "lucide-react";
+import Navbar from "@/app/components/Navbar";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Textarea } from "@/app/components/ui/textarea";
+import { Separator } from "@/app/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
+import { Card, CardContent } from "@/app/components/ui/card";
 
 // Define the types as provided
 type Milestone = {
-  description: string
-  targetAmount: number
-  isCompleted: boolean
-  submissionDetails?: string
-}
+  description: string;
+  targetAmount: number;
+  isCompleted: boolean;
+  submissionDetails?: string;
+};
 
 type CrowdfundInfo = {
-  creator: string
-  fundingGoal: number
-  duration: number
-  milestones: Milestone[]
-  campaignID: string
-  category: string
-  title: string
-  description: string
-  image: string
-  isFunded: boolean
-  isCompleted: boolean
-}
+  creator: string;
+  fundingGoal: number;
+  duration: number;
+  milestones: Milestone[];
+  campaignID: string;
+  category: string;
+  title: string;
+  description: string;
+  image: string;
+  isFunded: boolean;
+  isCompleted: boolean;
+};
 
 export default function CreateFundraiser() {
   // State to track form data
@@ -47,37 +54,47 @@ export default function CreateFundraiser() {
     image: "",
     milestones: [],
     creator: "", // This would typically be set from the connected wallet
-  })
+  });
 
   // State to track milestones
-  const [milestones, setMilestones] = useState<Milestone[]>([{ description: "", targetAmount: 0, isCompleted: false }])
+  const [milestones, setMilestones] = useState<Milestone[]>([
+    { description: "", targetAmount: 0, isCompleted: false },
+  ]);
 
   // Handle adding a new milestone
   const addMilestone = () => {
-    setMilestones([...milestones, { description: "", targetAmount: 0, isCompleted: false }])
-  }
+    setMilestones([
+      ...milestones,
+      { description: "", targetAmount: 0, isCompleted: false },
+    ]);
+  };
 
   // Handle removing a milestone
   const removeMilestone = (index: number) => {
-    const updatedMilestones = [...milestones]
-    updatedMilestones.splice(index, 1)
-    setMilestones(updatedMilestones)
-  }
+    const updatedMilestones = [...milestones];
+    updatedMilestones.splice(index, 1);
+    setMilestones(updatedMilestones);
+  };
 
   // Handle milestone field changes
-  const handleMilestoneChange = (index: number, field: keyof Milestone, value: string | number) => {
-    const updatedMilestones = [...milestones]
+  const handleMilestoneChange = (
+    index: number,
+    field: keyof Milestone,
+    value: string | number
+  ) => {
+    const updatedMilestones = [...milestones];
     if (field === "targetAmount") {
-      updatedMilestones[index][field] = Number(value)
+      updatedMilestones[index][field] = Number(value);
     } else {
-      updatedMilestones[index][field as "description" | "submissionDetails"] = value as string
+      updatedMilestones[index][field as "description" | "submissionDetails"] =
+        value as string;
     }
-    setMilestones(updatedMilestones)
-  }
+    setMilestones(updatedMilestones);
+  };
 
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // In a real app, you would submit this data to your blockchain
     const campaignData: CrowdfundInfo = {
@@ -87,46 +104,23 @@ export default function CreateFundraiser() {
       isFunded: false,
       isCompleted: false,
       creator: formData.creator || "0x0000000000000000000000000000000000000000", // Default value
-    }
+    };
 
-    console.log("Campaign data to submit:", campaignData)
+    console.log("Campaign data to submit:", campaignData);
     // Here you would call your contract function to create the campaign
-  }
+  };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <header className="border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-1">
-            <Snowflake className="h-6 w-6" />
-            <span className="text-xl font-semibold">Snowball</span>
-          </div>
-
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="#" className="text-gray-600 hover:text-gray-900">
-              Explore
-            </Link>
-            <Link href="#" className="text-gray-900 font-medium">
-              Start a Project
-            </Link>
-            <Link href="#" className="text-gray-600 hover:text-gray-900">
-              About
-            </Link>
-          </nav>
-
-          <Button variant="outline" className="flex items-center gap-2">
-            <Wallet className="h-4 w-4" />
-            <span>Connect</span>
-          </Button>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Create Your Fundraiser</h1>
-          <p className="text-gray-600">Launch your project on the Avalanche blockchain</p>
+          <p className="text-gray-600">
+            Launch your project on the Avalanche blockchain
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="grid gap-8">
@@ -137,25 +131,35 @@ export default function CreateFundraiser() {
               <CardContent className="pt-6">
                 <div className="space-y-6">
                   <div>
-                    <label htmlFor="title" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="title"
+                      className="block text-sm font-medium mb-2"
+                    >
                       Project Title
                     </label>
                     <Input
                       id="title"
                       placeholder="Enter a clear, concise title for your project"
                       value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      }
                       required
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="category" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="category"
+                      className="block text-sm font-medium mb-2"
+                    >
                       Category
                     </label>
                     <Select
                       value={formData.category}
-                      onValueChange={(value) => setFormData({ ...formData, category: value })}
+                      onValueChange={(value: string) =>
+                        setFormData({ ...formData, category: value })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
@@ -172,7 +176,10 @@ export default function CreateFundraiser() {
                   </div>
 
                   <div>
-                    <label htmlFor="description" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="description"
+                      className="block text-sm font-medium mb-2"
+                    >
                       Project Description
                     </label>
                     <Textarea
@@ -180,19 +187,27 @@ export default function CreateFundraiser() {
                       placeholder="Describe your project in detail. What are you building? Why is it important?"
                       rows={5}
                       value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                        setFormData({
+                          ...formData,
+                          description: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Cover Image</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Cover Image
+                    </label>
                     <div
                       className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50 transition-colors"
                       onClick={() => {
                         // In a real implementation, this would open a file picker
-                        const imageUrl = "/placeholder.svg?height=300&width=600"
-                        setFormData({ ...formData, image: imageUrl })
+                        const imageUrl =
+                          "/placeholder.svg?height=300&width=600";
+                        setFormData({ ...formData, image: imageUrl });
                       }}
                     >
                       {formData.image ? (
@@ -207,8 +222,12 @@ export default function CreateFundraiser() {
                       ) : (
                         <div className="flex flex-col items-center justify-center">
                           <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-500">Click to upload or drag and drop</p>
-                          <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 10MB</p>
+                          <p className="text-sm text-gray-500">
+                            Click to upload or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            PNG, JPG, GIF up to 10MB
+                          </p>
                         </div>
                       )}
                     </div>
@@ -225,7 +244,10 @@ export default function CreateFundraiser() {
               <CardContent className="pt-6">
                 <div className="space-y-6">
                   <div>
-                    <label htmlFor="fundingGoal" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="fundingGoal"
+                      className="block text-sm font-medium mb-2"
+                    >
                       Funding Target
                     </label>
                     <div className="relative">
@@ -238,23 +260,34 @@ export default function CreateFundraiser() {
                         placeholder="0.00"
                         className="pl-7"
                         value={formData.fundingGoal || ""}
-                        onChange={(e) => setFormData({ ...formData, fundingGoal: Number(e.target.value) })}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setFormData({
+                            ...formData,
+                            fundingGoal: Number(e.target.value),
+                          })
+                        }
                         required
                       />
                     </div>
                     <p className="mt-1 text-xs text-gray-500">
-                      Set a realistic goal for your project. Funds will be in AVAX.
+                      Set a realistic goal for your project. Funds will be in
+                      AVAX.
                     </p>
                   </div>
 
                   <div>
-                    <label htmlFor="duration" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="duration"
+                      className="block text-sm font-medium mb-2"
+                    >
                       Duration (days)
                     </label>
                     <div className="relative">
                       <Select
                         value={formData.duration?.toString()}
-                        onValueChange={(value) => setFormData({ ...formData, duration: Number(value) })}
+                        onValueChange={(value: string) =>
+                          setFormData({ ...formData, duration: Number(value) })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select duration" />
@@ -272,18 +305,24 @@ export default function CreateFundraiser() {
                   </div>
 
                   <div>
-                    <label htmlFor="creator" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="creator"
+                      className="block text-sm font-medium mb-2"
+                    >
                       Creator Wallet Address
                     </label>
                     <Input
                       id="creator"
                       placeholder="0x..."
                       value={formData.creator || ""}
-                      onChange={(e) => setFormData({ ...formData, creator: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setFormData({ ...formData, creator: e.target.value })
+                      }
                       required
                     />
                     <p className="mt-1 text-xs text-gray-500">
-                      Funds will be sent to this address when the campaign ends successfully.
+                      Funds will be sent to this address when the campaign ends
+                      successfully.
                     </p>
                   </div>
                 </div>
@@ -298,11 +337,21 @@ export default function CreateFundraiser() {
               <CardContent className="pt-6">
                 <div className="space-y-6">
                   {milestones.map((milestone, index) => (
-                    <div key={index} className="p-4 border border-gray-200 rounded-lg">
+                    <div
+                      key={index}
+                      className="p-4 border border-gray-200 rounded-lg"
+                    >
                       <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-md font-medium">Milestone {index + 1}</h3>
+                        <h3 className="text-md font-medium">
+                          Milestone {index + 1}
+                        </h3>
                         {milestones.length > 1 && (
-                          <Button type="button" variant="ghost" size="sm" onClick={() => removeMilestone(index)}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeMilestone(index)}
+                          >
                             <Trash2 className="h-4 w-4 text-gray-500" />
                           </Button>
                         )}
@@ -310,7 +359,10 @@ export default function CreateFundraiser() {
 
                       <div className="space-y-4">
                         <div>
-                          <label htmlFor={`milestone-desc-${index}`} className="block text-sm font-medium mb-2">
+                          <label
+                            htmlFor={`milestone-desc-${index}`}
+                            className="block text-sm font-medium mb-2"
+                          >
                             Description
                           </label>
                           <Textarea
@@ -318,18 +370,31 @@ export default function CreateFundraiser() {
                             placeholder="Describe what will be accomplished in this milestone"
                             rows={2}
                             value={milestone.description}
-                            onChange={(e) => handleMilestoneChange(index, "description", e.target.value)}
+                            onChange={(
+                              e: React.ChangeEvent<HTMLTextAreaElement>
+                            ) =>
+                              handleMilestoneChange(
+                                index,
+                                "description",
+                                e.target.value
+                              )
+                            }
                             required
                           />
                         </div>
 
                         <div>
-                          <label htmlFor={`milestone-amount-${index}`} className="block text-sm font-medium mb-2">
+                          <label
+                            htmlFor={`milestone-amount-${index}`}
+                            className="block text-sm font-medium mb-2"
+                          >
                             Target Amount
                           </label>
                           <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                              <span className="text-gray-500 sm:text-sm">$</span>
+                              <span className="text-gray-500 sm:text-sm">
+                                $
+                              </span>
                             </div>
                             <Input
                               id={`milestone-amount-${index}`}
@@ -337,14 +402,25 @@ export default function CreateFundraiser() {
                               placeholder="0.00"
                               className="pl-7"
                               value={milestone.targetAmount || ""}
-                              onChange={(e) => handleMilestoneChange(index, "targetAmount", e.target.value)}
+                              onChange={(
+                                e: React.ChangeEvent<HTMLInputElement>
+                              ) =>
+                                handleMilestoneChange(
+                                  index,
+                                  "targetAmount",
+                                  e.target.value
+                                )
+                              }
                               required
                             />
                           </div>
                         </div>
 
                         <div>
-                          <label htmlFor={`milestone-details-${index}`} className="block text-sm font-medium mb-2">
+                          <label
+                            htmlFor={`milestone-details-${index}`}
+                            className="block text-sm font-medium mb-2"
+                          >
                             Submission Details (Optional)
                           </label>
                           <Textarea
@@ -352,7 +428,15 @@ export default function CreateFundraiser() {
                             placeholder="Details about what needs to be submitted to verify this milestone"
                             rows={2}
                             value={milestone.submissionDetails || ""}
-                            onChange={(e) => handleMilestoneChange(index, "submissionDetails", e.target.value)}
+                            onChange={(
+                              e: React.ChangeEvent<HTMLTextAreaElement>
+                            ) =>
+                              handleMilestoneChange(
+                                index,
+                                "submissionDetails",
+                                e.target.value
+                              )
+                            }
                           />
                         </div>
                       </div>
@@ -378,13 +462,17 @@ export default function CreateFundraiser() {
           {/* Submit Section */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-500">
-              By launching a project, you agree to Snowball's Terms of Service and Privacy Policy.
+              By launching a project, you agree to Snowball's Terms of Service
+              and Privacy Policy.
             </p>
             <div className="flex gap-4">
               <Button type="button" variant="outline">
                 Save Draft
               </Button>
-              <Button type="submit" className="bg-black text-white hover:bg-gray-800">
+              <Button
+                type="submit"
+                className="bg-black text-white hover:bg-gray-800"
+              >
                 Launch Project
               </Button>
             </div>
@@ -392,6 +480,5 @@ export default function CreateFundraiser() {
         </form>
       </main>
     </div>
-  )
+  );
 }
-
