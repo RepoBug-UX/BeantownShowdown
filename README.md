@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides a summary of the main components of the Snowball platform. Snowball is a decentralized fundraising and DAO management smart contract system that allows users to create and manage DAOs with specific funding goals, milestones, and transparent fund disbursement. The system integrates with a MongoDB server for data storage and a Next.js frontend for user interaction, and is deployed on Avalanche’s Layer 1 (L1) network for fast, scalable, and low-cost transactions.
+Snowball is a decentralized fundraising and DAO management smart contract system that allows users to create and manage DAOs with specific funding goals, milestones, and transparent fund disbursement. The system integrates with a MongoDB server for data storage and a Next.js frontend for user interaction, and is deployed on Avalanche’s Layer 1 (L1) network for fast, scalable, and low-cost transactions.
 
 ## DFactory.sol
 
