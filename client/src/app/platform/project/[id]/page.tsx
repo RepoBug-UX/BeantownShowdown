@@ -28,6 +28,7 @@ import { Separator } from "@/app/components/ui/separator";
 import { useAccount } from "wagmi";
 import { Input } from "@/app/components/ui/input";
 import BackProject from "@/app/components/BackProject";
+import DaoVoting from "@/app/components/DaoVoting";
 
 // Define the Project interface
 interface Backer {
@@ -271,11 +272,45 @@ export default function ProjectPage() {
                 <Button
                   variant="outline"
                   className="w-full flex items-center justify-center"
-                  onClick={() => {window.open("https://media.licdn.com/dms/image/v2/C4E03AQH-7MawU6UQmg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1634521118617?e=1747872000&v=beta&t=SPLf1c5GytYiUQ-bFtpIA5jdp42ZWP5ilAcCyXNKrs4")}}
+                  onClick={() => {
+                    window.open(
+                      "https://media.licdn.com/dms/image/v2/C4E03AQH-7MawU6UQmg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1634521118617?e=1747872000&v=beta&t=SPLf1c5GytYiUQ-bFtpIA5jdp42ZWP5ilAcCyXNKrs4"
+                    );
+                  }}
                 >
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </Button>
+
+                {/* DAO Governance Section - Only show if project has milestones */}
+                {project.milestones && project.milestones.length > 0 && (
+                  <>
+                    <Separator className="my-4" />
+                    <div className="text-sm font-medium mb-2">
+                      DAO Governance
+                    </div>
+                    <DaoVoting
+                      projectId={id as string}
+                      milestones={
+                        project.milestones?.map((m, index) => ({
+                          id: index + 1,
+                          description: m.description,
+                          targetAmount: m.targetAmount,
+                          isCompleted: m.isCompleted,
+                        })) || []
+                      }
+                      backers={project.backers || []}
+                      userIsBacker={
+                        project.backers?.some(
+                          (backer) =>
+                            backer.address.toLowerCase() ===
+                            address?.toLowerCase()
+                        ) || false
+                      }
+                      onVoteSuccess={refreshProjectData}
+                    />
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
