@@ -19,7 +19,7 @@ contract DFundTest is Test {
 
     //Constructor tests
 
-    function testConstructor_valuesSet() public {
+    function testConstructor_valuesSet() public view {
         assertEq(dao.CREATOR(), address(this));
         assertEq(dao.FUNDING_GOAL(), fundingGoal);
         assertEq(dao.ENDBLOCK(), block.number + duration);
