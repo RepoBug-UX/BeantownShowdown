@@ -29,6 +29,9 @@ import {
 import { formatAddress } from "@/app/lib/utils";
 import { toast } from "sonner";
 
+// WalletConnect configuration
+const WALLET_CONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'glacier-starter-kit';
+
 interface BackProjectProps {
   projectId: string;
   projectTitle: string;

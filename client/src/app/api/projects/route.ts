@@ -26,22 +26,23 @@ async function verifyTransaction(transactionHash: string, amount: number, sender
             amount: amount.toString()
         });
 
-        // Determine the base URL - making sure we have a full URL with protocol
-        let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-
-        // If we're running on the server and no BASE_URL is specified, use a default localhost URL
-        if (!baseUrl || baseUrl === '') {
+        // Determine the base URL based on environment
+        let baseUrl;
+        if (process.env.VERCEL_URL) {
+            // Use Vercel URL in production
+            baseUrl = `https://${process.env.VERCEL_URL}`;
+        } else if (process.env.NEXT_PUBLIC_BASE_URL) {
+            baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+        } else {
             baseUrl = 'http://localhost:3000';
         }
 
         // Make sure baseUrl doesn't end with a slash
-        if (baseUrl.endsWith('/')) {
-            baseUrl = baseUrl.slice(0, -1);
-        }
+        baseUrl = baseUrl.replace(/\/$/, '');
 
         // Construct the full URL
         const url = `${baseUrl}/api/wallet?${params.toString()}`;
-        console.log('Absolute verification URL:', url);
+        console.log('Verification URL:', url);
 
         const response = await fetch(url, {
             method: 'GET',
