@@ -172,14 +172,16 @@ export default function BasicWallet() {
     return (
       <div className="flex flex-col min-h-screen bg-white">
         <header className="border-b">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2">
-              <Snowflake className="h-6 w-6 text-gray-800" />
-              <span className="text-xl font-semibold text-gray-800">
-                Snowball
-              </span>
-            </Link>
-            <nav className="hidden md:flex space-x-6">
+          <div className="container mx-auto px-4 py-4 grid grid-cols-3 items-center">
+            <div className="flex items-center">
+              <Link href="/" className="flex items-center space-x-2">
+                <Snowflake className="h-6 w-6 text-gray-800" />
+                <span className="text-xl font-semibold text-gray-800">
+                  Snowball
+                </span>
+              </Link>
+            </div>
+            <nav className="hidden md:flex justify-center space-x-6">
               <Link
                 href="/projects"
                 className="text-gray-600 hover:text-gray-800"
@@ -193,7 +195,7 @@ export default function BasicWallet() {
                 About
               </Link>
             </nav>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center justify-end space-x-4">
               <ConnectButton />
               <Button
                 variant="ghost"
@@ -227,6 +229,28 @@ export default function BasicWallet() {
 
           <section className="mb-16">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+              Categories
+            </h2>
+            <div className="flex flex-wrap gap-4">
+              {[
+                "Technology",
+                "Art",
+                "Games",
+                "Music",
+                "Film",
+                "Environment",
+                "Social",
+                "Innovation",
+              ].map((category) => (
+                <Button key={category} variant="outline" className="bg-gray-50">
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </section>
+
+          <section className="mb-16">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
               Featured Projects
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -253,28 +277,6 @@ export default function BasicWallet() {
                     </Button>
                   </CardFooter>
                 </Card>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-              Categories
-            </h2>
-            <div className="flex flex-wrap gap-4">
-              {[
-                "Technology",
-                "Art",
-                "Games",
-                "Music",
-                "Film",
-                "Environment",
-                "Social",
-                "Innovation",
-              ].map((category) => (
-                <Button key={category} variant="outline" className="bg-gray-50">
-                  {category}
-                </Button>
               ))}
             </div>
           </section>
@@ -325,7 +327,7 @@ export default function BasicWallet() {
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
-      <header className="flex justify-between items-center mb-8 py-4 border-b border-gray-200 dark:border-gray-700">
+      <header className="grid grid-cols-3 items-center mb-8 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center">
           <button onClick={() => setShowWallet(false)} className="mr-4">
             <svg
@@ -343,12 +345,16 @@ export default function BasicWallet() {
               <path d="m15 18-6-6 6-6" />
             </svg>
           </button>
+        </div>
+        <div className="flex items-center justify-center">
           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
             <span className="text-white font-bold">S</span>
           </div>
           <h1 className="text-2xl font-bold">Snowball Wallet</h1>
         </div>
-        <ConnectButton />
+        <div className="flex justify-end">
+          <ConnectButton />
+        </div>
       </header>
 
       <div className="flex flex-col lg:flex-row gap-6">
