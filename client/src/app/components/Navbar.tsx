@@ -74,6 +74,48 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           <ConnectButton />
         </div>
       </div>
+      <nav className="flex md:hidden justify-center space-x-6 py-2">
+        <Link
+          href="/platform/dashboard"
+          className={`${
+            isLinkActive("/platform/dashboard")
+              ? "text-blue-600 font-medium"
+              : "text-gray-600"
+          } hover:text-gray-800`}
+        >
+          Dashboard
+        </Link>
+        <Link
+          href="/platform/explore"
+          className={`${
+            isLinkActive("/platform/explore")
+              ? "text-blue-600 font-medium"
+              : "text-gray-600"
+          } hover:text-gray-800`}
+        >
+          Explore
+        </Link>
+        <Link
+          href="/platform/create"
+          className={`${
+            isLinkActive("/platform/create")
+              ? "text-blue-600 font-medium"
+              : "text-gray-600"
+          } hover:text-gray-800`}
+        >
+          Start a Project
+        </Link>
+        <Link
+          href="/platform/about"
+          className={`${
+            isLinkActive("/platform/about")
+              ? "text-blue-600 font-medium"
+              : "text-gray-600"
+          } hover:text-gray-800`}
+        >
+          About
+        </Link>
+      </nav>
     </header>
   );
 }
