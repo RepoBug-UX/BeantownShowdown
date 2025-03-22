@@ -225,10 +225,10 @@ export default function ProjectPage() {
                   <Progress value={progressPercentage} className="mb-2" />
                   <div className="flex justify-between mb-1">
                     <span className="font-medium">
-                      ${project.raised.toLocaleString()}
+                      AVAX {project.raised.toLocaleString()}
                     </span>
                     <span className="text-gray-500">
-                      of ${project.fundingGoal.toLocaleString()}
+                      of AVAX {project.fundingGoal.toLocaleString()}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500">
@@ -265,6 +265,7 @@ export default function ProjectPage() {
                   <BackProject
                     projectId={id as string}
                     projectTitle={project.title}
+                    creatorAddress={project.creatorAddress}
                     onBackSuccess={refreshProjectData}
                   />
                 </div>
@@ -350,7 +351,7 @@ export default function ProjectPage() {
                         </div>
                       </div>
                       <div className="font-medium">
-                        ${backer.amount.toLocaleString()}
+                        AVAX {backer.amount.toLocaleString()}
                       </div>
                     </div>
                   </div>
@@ -409,7 +410,7 @@ export default function ProjectPage() {
                           {milestone.description}
                         </p>
                         <p className="text-sm text-gray-500">
-                          Funding goal: $
+                          Funding goal: AVAX
                           {(milestone.targetAmount || 0).toLocaleString()}
                         </p>
                       </div>

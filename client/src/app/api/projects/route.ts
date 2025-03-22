@@ -2,6 +2,75 @@ import { NextRequest, NextResponse } from 'next/server'
 import clientPromise from '@/app/lib/mongodb'
 import { ObjectId } from 'mongodb'
 import { Project, Backer } from '@/types/ProjectTypes'
+import { AvaCloudSDK } from "@avalabs/avacloud-sdk";
+
+// Initialize Avalanche SDK
+const avaCloudSDK = new AvaCloudSDK({
+    apiKey: process.env.GLACIER_API_KEY,
+    chainId: "43114", // Avalanche Mainnet
+    network: "mainnet",
+});
+
+// Helper function to verify a transaction
+async function verifyTransaction(transactionHash: string, amount: number, sender: string, recipient: string) {
+    try {
+        // In a real production environment, this would query the Avalanche blockchain directly
+        // For now, we'll use our wallet API to verify the transaction
+
+        // Properly encode all URL parameters to prevent truncation
+        const params = new URLSearchParams({
+            method: 'verifyTransaction',
+            txHash: transactionHash,
+            sender: sender,
+            recipient: recipient,
+            amount: amount.toString()
+        });
+
+        // Determine the base URL - making sure we have a full URL with protocol
+        let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+        // If we're running on the server and no BASE_URL is specified, use a default localhost URL
+        if (!baseUrl || baseUrl === '') {
+            baseUrl = 'http://localhost:3000';
+        }
+
+        // Make sure baseUrl doesn't end with a slash
+        if (baseUrl.endsWith('/')) {
+            baseUrl = baseUrl.slice(0, -1);
+        }
+
+        // Construct the full URL
+        const url = `${baseUrl}/api/wallet?${params.toString()}`;
+        console.log('Absolute verification URL:', url);
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            console.error('Transaction verification failed', await response.text());
+            return false;
+        }
+
+        const verificationResult = await response.json();
+        console.log('Verification result:', verificationResult);
+
+        // In a real implementation, we would check that:
+        // 1. The transaction exists on the blockchain
+        // 2. It's confirmed (has enough confirmations)
+        // 3. The sender matches the backer address
+        // 4. The recipient matches the creator address
+        // 5. The amount matches the specified amount
+
+        return verificationResult.verified === true;
+    } catch (error) {
+        console.error('Error verifying transaction:', error);
+        return false;
+    }
+}
 
 // GET handler for retrieving all projects or a specific project
 export async function GET(request: NextRequest) {
@@ -100,31 +169,81 @@ export async function PATCH(request: NextRequest) {
         }
 
         const body = await request.json()
+        console.log('PATCH request body:', body);
 
         const client = await clientPromise
         const db = client.db('beantown')
         const collection = db.collection('projects')
 
         // Handle adding a backer
-        if (body.addBacker && body.backerAddress && body.amount) {
+        if (body.addBacker && body.backerAddress && body.amount !== undefined) {
+            console.log('Processing add backer request:', {
+                projectId: id,
+                backerAddress: body.backerAddress,
+                amount: body.amount,
+                transactionHash: body.transactionHash
+            });
+
+            // Validate transaction hash
+            if (!body.transactionHash) {
+                console.error('Transaction hash missing');
+                return NextResponse.json({
+                    error: 'Transaction hash is required to verify payment'
+                }, { status: 400 });
+            }
+
+            // Verify the transaction on Avalanche network
+            const isTransactionValid = await verifyTransaction(
+                body.transactionHash,
+                Number(body.amount),
+                body.backerAddress,
+                body.creatorAddress
+            );
+
+            if (!isTransactionValid) {
+                console.error('Transaction verification failed');
+                return NextResponse.json({
+                    error: 'Transaction verification failed. Please ensure your payment was completed correctly.'
+                }, { status: 400 });
+            }
+
             const newBacker: Backer = {
                 address: body.backerAddress,
                 amount: Number(body.amount),
-                timestamp: new Date()
+                timestamp: new Date(),
+                transactionHash: body.transactionHash // Store the transaction hash
             }
 
+            console.log('Adding backer with data:', newBacker);
+
             // Add the backer to the backers array and increment backersCount
-            await collection.updateOne(
+            const updateResult = await collection.updateOne(
                 { _id: new ObjectId(id) },
                 {
-                    $push: { backers: newBacker as any },
+                    $push: { backers: newBacker as any }, // Cast to any to satisfy TypeScript
                     $inc: { backersCount: 1, raised: Number(body.amount) }
                 }
             )
 
+            console.log('Update result:', updateResult);
+
+            if (updateResult.matchedCount === 0) {
+                console.error('Project not found:', id);
+                return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+            }
+
+            if (updateResult.modifiedCount === 0) {
+                console.error('Project not modified. Possible duplicate transaction.');
+                return NextResponse.json({
+                    error: 'Failed to update project. This transaction may have already been processed.'
+                }, { status: 400 });
+            }
+
             return NextResponse.json({
-                message: 'Backer added successfully'
-            })
+                message: 'Backer added successfully',
+                transactionVerified: true,
+                backerAdded: true
+            }, { status: 200 })
         }
 
         // Prepare the update data for other fields

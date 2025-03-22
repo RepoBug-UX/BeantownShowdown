@@ -11,6 +11,7 @@ export type Backer = {
     address: string;
     amount: number;
     timestamp: Date;
+    transactionHash?: string;
 };
 
 export type Project = {
