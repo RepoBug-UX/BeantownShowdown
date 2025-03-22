@@ -27,6 +27,7 @@ import { Card, CardContent } from "@/app/components/ui/card";
 import { Separator } from "@/app/components/ui/separator";
 import { useAccount } from "wagmi";
 import { Input } from "@/app/components/ui/input";
+import { Textarea } from "@/app/components/ui/textarea";
 import BackProject from "@/app/components/BackProject";
 import DaoVoting from "@/app/components/DaoVoting";
 
@@ -42,6 +43,14 @@ interface Milestone {
   targetAmount: number;
   isCompleted: boolean;
   submissionDetails?: string;
+}
+
+interface Comment {
+  _id: string;
+  projectId: string;
+  userAddress: string;
+  content: string;
+  timestamp: string;
 }
 
 interface Project {
@@ -62,9 +71,10 @@ interface Project {
   creatorBio?: string;
   backers: Backer[];
   // Other fields
-  team?: any[];
   milestones?: Milestone[];
   updates?: any[];
+  comments?: Comment[];
+  upvotes: string[];
 }
 
 export default function ProjectPage() {
@@ -73,6 +83,10 @@ export default function ProjectPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { address, isConnected } = useAccount();
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [isUpvoting, setIsUpvoting] = useState(false);
 
   useEffect(() => {
     // Fetch the project data from the API
@@ -95,6 +109,26 @@ export default function ProjectPage() {
     fetchProject();
   }, [id]);
 
+  useEffect(() => {
+    // Fetch comments for the project
+    const fetchComments = async () => {
+      try {
+        const response = await fetch(`/api/comments?projectId=${id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch comments");
+        }
+        const data = await response.json();
+        setComments(data);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
+      }
+    };
+
+    if (id) {
+      fetchComments();
+    }
+  }, [id]);
+
   // Calculate days left until deadline
   const calculateDaysLeft = (deadline: string): number => {
     const now = new Date();
@@ -115,6 +149,80 @@ export default function ProjectPage() {
       setProject(data);
     } catch (err: any) {
       console.error("Error refreshing project:", err);
+    }
+  };
+
+  const handleSubmitComment = async () => {
+    if (!isConnected || !address || !newComment.trim()) return;
+
+    setSubmittingComment(true);
+    try {
+      const response = await fetch("/api/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId: id,
+          userAddress: address,
+          content: newComment.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit comment");
+      }
+
+      const newCommentData = await response.json();
+      setComments((prev) => [newCommentData, ...prev]);
+      setNewComment("");
+    } catch (err) {
+      console.error("Error submitting comment:", err);
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const handleUpvote = async () => {
+    if (!isConnected || !address || !project) {
+      return;
+    }
+
+    setIsUpvoting(true);
+    try {
+      const response = await fetch('/api/projects/upvote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId: project._id,
+          voterAddress: address,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upvote project');
+      }
+
+      const data = await response.json();
+      
+      // Update the project's upvotes locally
+      setProject(prev => {
+        if (!prev) return null;
+        const newUpvotes = data.hasUpvoted 
+          ? [...(prev.upvotes || []), address.toLowerCase()]
+          : (prev.upvotes || []).filter(addr => addr !== address.toLowerCase());
+        
+        return {
+          ...prev,
+          upvotes: newUpvotes
+        };
+      });
+    } catch (error) {
+      console.error('Error upvoting project:', error);
+    } finally {
+      setIsUpvoting(false);
     }
   };
 
@@ -152,6 +260,7 @@ export default function ProjectPage() {
   }
 
   const progressPercentage = (project.raised / project.fundingGoal) * 100;
+  const hasUpvoted = project.upvotes?.includes(address?.toLowerCase() || '');
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -171,9 +280,39 @@ export default function ProjectPage() {
         {/* Project Header */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           <div className="lg:col-span-2">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              {project.title}
-            </h1>
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-3xl font-bold text-gray-900">
+                {project.title}
+              </h1>
+              <Button
+                onClick={handleUpvote}
+                disabled={!isConnected || isUpvoting}
+                variant={hasUpvoted ? "secondary" : "outline"}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                {isUpvoting ? (
+                  "Processing..."
+                ) : (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={`h-4 w-4 ${hasUpvoted ? 'fill-current' : ''}`}
+                    >
+                      <path d="M7 10v12" />
+                      <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
+                    </svg>
+                    {project.upvotes?.length || 0}
+                  </>
+                )}
+              </Button>
+            </div>
             <p className="text-lg text-gray-600 mb-6">{project.description}</p>
 
             <div className="aspect-video bg-gray-200 rounded-lg mb-6 relative">
@@ -322,6 +461,7 @@ export default function ProjectPage() {
             <TabsTrigger value="backers">Backers</TabsTrigger>
             <TabsTrigger value="updates">Updates</TabsTrigger>
             <TabsTrigger value="milestones">Milestones</TabsTrigger>
+            <TabsTrigger value="comments">Comments</TabsTrigger>
           </TabsList>
 
           <TabsContent value="about" className="space-y-6">
@@ -426,6 +566,59 @@ export default function ProjectPage() {
                     </div>
                   </div>
                 ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="comments" className="space-y-6">
+            <h2 className="text-2xl font-semibold mb-6">Comments</h2>
+            
+            {/* Comment submission form */}
+            {isConnected ? (
+              <div className="mb-8 space-y-4">
+                <Textarea
+                  placeholder="Share your thoughts about this project..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="min-h-[100px]"
+                />
+                <Button
+                  onClick={handleSubmitComment}
+                  disabled={!newComment.trim() || submittingComment}
+                >
+                  {submittingComment ? "Posting..." : "Post Comment"}
+                </Button>
+              </div>
+            ) : (
+              <p className="text-gray-500 mb-8">
+                Please connect your wallet to leave a comment.
+              </p>
+            )}
+
+            {/* Comments list */}
+            <div className="space-y-6">
+              {comments.length > 0 ? (
+                comments.map((comment) => (
+                  <div
+                    key={comment._id}
+                    className="border rounded-lg p-4 space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="font-mono text-sm text-gray-500">
+                        {comment.userAddress.slice(0, 6)}...
+                        {comment.userAddress.slice(-4)}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {new Date(comment.timestamp).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <p className="text-gray-700">{comment.content}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">
+                  No comments yet. Be the first to comment!
+                </p>
+              )}
             </div>
           </TabsContent>
         </Tabs>

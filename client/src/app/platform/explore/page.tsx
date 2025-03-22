@@ -15,7 +15,7 @@ import {
 } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
 import { Progress } from "@/app/components/ui/progress";
-import { Snowflake, Search, Menu, Filter, Clock } from "lucide-react";
+import { Snowflake, Search, Menu, Filter, Clock, Users } from "lucide-react";
 import Navbar from "@/app/components/Navbar";
 
 // Define the Project interface
@@ -33,6 +33,7 @@ interface Project {
   creator?: string;
   milestones?: any[];
   updates?: any[];
+  upvotes: string[];
 }
 
 export default function ExplorePage() {
@@ -154,69 +155,67 @@ export default function ExplorePage() {
               Error loading projects: {error}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProjects.length > 0 ? (
-                filteredProjects.map((project) => (
-                  <Link
-                    href={`/platform/project/${project._id}`}
-                    key={project._id}
-                    className="block"
-                  >
-                    <Card className="h-full hover:shadow-md transition-shadow">
-                      <CardContent className="p-0">
-                        <div className="aspect-video bg-gray-200 relative">
-                          {project.image ? (
-                            project.image.startsWith("data:") ? (
-                              <img
-                                src={project.image}
-                                alt={project.title}
-                                className="w-full h-full object-cover rounded-t-lg"
-                              />
-                            ) : (
-                              <Image
-                                src={project.image}
-                                alt={project.title}
-                                width={400}
-                                height={225}
-                                className="w-full h-full object-cover rounded-t-lg"
-                              />
-                            )
-                          ) : (
-                            <div className="flex items-center justify-center h-full bg-gray-100 rounded-t-lg">
-                              <Snowflake className="h-12 w-12 text-gray-400" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-5">
-                          <h3 className="font-semibold text-lg mb-2 line-clamp-1">
-                            {project.title}
-                          </h3>
-                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                            {project.description}
-                          </p>
-                          <Progress
-                            value={(project.raised / project.fundingGoal) * 100}
-                            className="h-2 mb-4"
-                          />
-                          <div className="flex justify-between items-center text-sm">
-                            <div className="font-semibold">
-                              ${project.raised?.toLocaleString()} raised
-                            </div>
-                            <div className="text-gray-500 flex items-center">
-                              <Clock className="h-4 w-4 mr-1" />
-                              {calculateDaysLeft(project.deadline)} days left
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-10 text-gray-500">
-                  No projects found matching your criteria.
-                </div>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProjects.map((project) => (
+                <Link key={project._id} href={`/platform/project/${project._id}`}>
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="relative h-48">
+                      <Image
+                        src={project.image || "/placeholder.png"}
+                        alt={project.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="line-clamp-1">{project.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                        {project.description}
+                      </p>
+                      <Progress
+                        value={(project.raised / project.fundingGoal) * 100}
+                        className="h-2"
+                      />
+                      <div className="mt-4 flex justify-between items-center text-sm">
+                        <span className="font-medium">
+                          {project.raised} AVAX
+                        </span>
+                        <span className="text-muted-foreground">
+                          {((project.raised / project.fundingGoal) * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        {project.backersCount} backers
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-4 w-4"
+                        >
+                          <path d="M7 10v12" />
+                          <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
+                        </svg>
+                        {project.upvotes?.length || 0}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        {calculateDaysLeft(project.deadline)} days left
+                      </div>
+                    </CardFooter>
+                  </Card>
+                </Link>
+              ))}
             </div>
           )}
         </section>

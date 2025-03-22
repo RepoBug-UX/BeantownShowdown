@@ -24,8 +24,10 @@ import {
   GaugeCircle,
   PiggyBank,
   Clock,
+  Users,
 } from "lucide-react";
 import { Project as ProjectType } from "@/types/ProjectTypes";
+import Image from "next/image";
 
 // Interface for the dashboard project display
 interface DashboardProject {
@@ -38,6 +40,7 @@ interface DashboardProject {
   backersCount: number;
   status: "active" | "completed" | "drafting";
   image: string;
+  upvotes: string[];
 }
 
 export default function Dashboard() {
@@ -75,6 +78,7 @@ export default function Dashboard() {
             backersCount: project.backersCount,
             status: project.status as "active" | "completed" | "drafting",
             image: project.image,
+            upvotes: project.upvotes || []
           }));
 
         // Filter projects where the user is a backer
@@ -92,6 +96,7 @@ export default function Dashboard() {
             backersCount: project.backersCount,
             status: project.status as "active" | "completed" | "drafting",
             image: project.image,
+            upvotes: project.upvotes || []
           }));
 
         setActiveProjects(userProjects);
@@ -119,6 +124,15 @@ export default function Dashboard() {
       style: "currency",
       currency: "USD",
     }).format(amount);
+  };
+
+  // Calculate days left until deadline
+  const calculateDaysLeft = (deadline: string): number => {
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    const diffTime = Math.abs(deadlineDate.getTime() - now.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
 
   // If not connected, show a prompt to connect wallet
@@ -179,57 +193,61 @@ export default function Dashboard() {
             ) : activeProjects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {activeProjects.map((project) => (
-                  <Card key={project.id} className="overflow-hidden">
-                    <div className="h-48 w-full overflow-hidden">
-                      <img
-                        src={project.image}
-                        alt={project.title}
-                        className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
-                      />
-                    </div>
-                    <CardHeader>
-                      <CardTitle>{project.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 mb-4">
-                        {project.description}
-                      </p>
-                      <div className="space-y-3">
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>{formatCurrency(project.raised)} raised</span>
-                            <span>{formatCurrency(project.goal)} goal</span>
-                          </div>
-                          <Progress
-                            value={calculateProgress(
-                              project.raised,
-                              project.goal
-                            )}
-                            className="h-2"
+                  <Link key={project.id} href={`/platform/project/${project.id}`}>
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <CardHeader className="p-0">
+                        <div className="relative h-48">
+                          <Image
+                            src={project.image || "/placeholder.png"}
+                            alt={project.title}
+                            fill
+                            className="object-cover"
                           />
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="flex items-center gap-1">
-                            <Wallet className="h-3 w-3" />
-                            {project.backersCount} backers
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Ends{" "}
-                            {new Date(project.deadline).toLocaleDateString()}
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <CardTitle className="text-xl mb-2 line-clamp-1">
+                          {project.title}
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                          {project.description}
+                        </p>
+                        <Progress value={(project.raised / project.goal) * 100} className="h-2" />
+                        <div className="mt-4 flex justify-between items-center text-sm">
+                          <span className="font-medium">{project.raised} AVAX</span>
+                          <span className="text-muted-foreground">
+                            {((project.raised / project.goal) * 100).toFixed(1)}%
                           </span>
                         </div>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-between">
-                      <Link href={`/platform/project/${project.id}`}>
-                        <Button variant="outline">View Project</Button>
-                      </Link>
-                      <Link href={`/platform/project/update/${project.id}`}>
-                        <Button>Update</Button>
-                      </Link>
-                    </CardFooter>
-                  </Card>
+                      </CardContent>
+                      <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Users className="h-4 w-4" />
+                          {project.backersCount} backers
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4"
+                          >
+                            <path d="M7 10v12" />
+                            <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
+                          </svg>
+                          {project.upvotes?.length || 0}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {calculateDaysLeft(project.deadline)} days left
+                        </div>
+                      </CardFooter>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             ) : (
@@ -255,55 +273,61 @@ export default function Dashboard() {
             ) : fundraisingProjects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {fundraisingProjects.map((project) => (
-                  <Card key={project.id} className="overflow-hidden">
-                    <div className="h-48 w-full overflow-hidden">
-                      <img
-                        src={project.image}
-                        alt={project.title}
-                        className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
-                      />
-                    </div>
-                    <CardHeader>
-                      <CardTitle>{project.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 mb-4">
-                        {project.description}
-                      </p>
-                      <div className="space-y-3">
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>{formatCurrency(project.raised)} raised</span>
-                            <span>{formatCurrency(project.goal)} goal</span>
-                          </div>
-                          <Progress
-                            value={calculateProgress(
-                              project.raised,
-                              project.goal
-                            )}
-                            className="h-2"
+                  <Link key={project.id} href={`/platform/project/${project.id}`}>
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <CardHeader className="p-0">
+                        <div className="relative h-48">
+                          <Image
+                            src={project.image || "/placeholder.png"}
+                            alt={project.title}
+                            fill
+                            className="object-cover"
                           />
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="flex items-center gap-1">
-                            <Wallet className="h-3 w-3" />
-                            {project.backersCount} backers
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Ends{" "}
-                            {new Date(project.deadline).toLocaleDateString()}
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <CardTitle className="text-xl mb-2 line-clamp-1">
+                          {project.title}
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                          {project.description}
+                        </p>
+                        <Progress value={(project.raised / project.goal) * 100} className="h-2" />
+                        <div className="mt-4 flex justify-between items-center text-sm">
+                          <span className="font-medium">{project.raised} AVAX</span>
+                          <span className="text-muted-foreground">
+                            {((project.raised / project.goal) * 100).toFixed(1)}%
                           </span>
                         </div>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-between">
-                      <Link href={`/platform/project/${project.id}`}>
-                        <Button variant="outline">View Details</Button>
-                      </Link>
-                      <Button>Support</Button>
-                    </CardFooter>
-                  </Card>
+                      </CardContent>
+                      <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Users className="h-4 w-4" />
+                          {project.backersCount} backers
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4"
+                          >
+                            <path d="M7 10v12" />
+                            <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
+                          </svg>
+                          {project.upvotes?.length || 0}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {calculateDaysLeft(project.deadline)} days left
+                        </div>
+                      </CardFooter>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             ) : (

@@ -51,7 +51,7 @@ export default function AboutPage() {
             <div className="bg-blue-100 rounded-lg p-8 flex items-center justify-center">
               <div className="max-w-md">
                 <div className="text-5xl font-bold text-blue-600 mb-4">
-                  Boston's First
+                  Avalanches's First
                 </div>
                 <div className="text-2xl text-gray-700">
                   Web3 Project Launchpad
@@ -100,33 +100,6 @@ export default function AboutPage() {
                 </p>
               </CardContent>
             </Card>
-          </div>
-        </section>
-
-        {/* Team Section */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-10 text-center text-gray-900">
-            Our Team
-          </h2>
-          <div className="grid md:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map((member) => (
-              <div key={member} className="text-center">
-                <div className="w-32 h-32 bg-gray-300 rounded-full mx-auto mb-4"></div>
-                <h3 className="font-bold text-lg mb-1">Team Member {member}</h3>
-                <p className="text-gray-600 mb-3">Co-Founder</p>
-                <div className="flex justify-center space-x-3">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Twitter className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Linkedin className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Github className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
           </div>
         </section>
 

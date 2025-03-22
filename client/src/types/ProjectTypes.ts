@@ -33,4 +33,5 @@ export type Project = {
     createdAt: Date;
     milestones: Milestone[];
     updates: any[];
+    upvotes: string[];      // Array of wallet addresses that have upvoted
 }; 
