@@ -196,28 +196,6 @@ export default function BasicWallet() {
 
           <section className="mb-16">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-              Categories
-            </h2>
-            <div className="flex flex-wrap gap-4">
-              {[
-                "Technology",
-                "Art",
-                "Games",
-                "Music",
-                "Film",
-                "Environment",
-                "Social",
-                "Innovation",
-              ].map((category) => (
-                <Button key={category} variant="outline" className="bg-gray-50">
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </section>
-
-          <section className="mb-16">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
               Featured Projects
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
