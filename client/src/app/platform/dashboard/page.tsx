@@ -34,7 +34,7 @@ interface Project {
   raised: number;
   goal: number;
   deadline: string;
-  backers: number;
+  backersCount: number;
   status: "active" | "completed" | "drafting";
   image: string;
 }
@@ -61,7 +61,7 @@ export default function Dashboard() {
             raised: 12000,
             goal: 15000,
             deadline: "2023-08-15",
-            backers: 56,
+            backersCount: 56,
             status: "active",
             image:
               "https://images.unsplash.com/photo-1624598389798-b6f7aa846fc9?q=80&w=500",
@@ -74,7 +74,7 @@ export default function Dashboard() {
             raised: 8500,
             goal: 20000,
             deadline: "2023-09-30",
-            backers: 42,
+            backersCount: 42,
             status: "active",
             image:
               "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?q=80&w=500",
@@ -90,7 +90,7 @@ export default function Dashboard() {
             raised: 3000,
             goal: 25000,
             deadline: "2023-10-15",
-            backers: 18,
+            backersCount: 18,
             status: "active",
             image:
               "https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=500",
@@ -103,7 +103,7 @@ export default function Dashboard() {
             raised: 5000,
             goal: 40000,
             deadline: "2023-11-01",
-            backers: 23,
+            backersCount: 23,
             status: "active",
             image:
               "https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=500",
@@ -116,7 +116,7 @@ export default function Dashboard() {
             raised: 1200,
             goal: 10000,
             deadline: "2023-09-15",
-            backers: 8,
+            backersCount: 8,
             status: "active",
             image:
               "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=500",
@@ -235,7 +235,7 @@ export default function Dashboard() {
                         <div className="flex justify-between text-sm">
                           <span className="flex items-center gap-1">
                             <Wallet className="h-3 w-3" />
-                            {project.backers} backers
+                            {project.backersCount} backers
                           </span>
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
@@ -311,7 +311,7 @@ export default function Dashboard() {
                         <div className="flex justify-between text-sm">
                           <span className="flex items-center gap-1">
                             <Wallet className="h-3 w-3" />
-                            {project.backers} backers
+                            {project.backersCount} backers
                           </span>
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />

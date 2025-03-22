@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import clientPromise from '@/app/lib/mongodb'
 import { ObjectId } from 'mongodb'
-import { Project, PotentialBacker } from '@/types/ProjectTypes'
+import { Project, Backer } from '@/types/ProjectTypes'
 
 // GET handler for retrieving all projects or a specific project
 export async function GET(request: NextRequest) {
@@ -55,14 +55,14 @@ export async function POST(request: NextRequest) {
             category: body.category || 'Other',
             fundingGoal: Number(body.fundingGoal),
             raised: 0,
-            backers: 0,
+            backersCount: 0,
             // Track creator address
             creatorAddress: body.creator,
             // Store creator details if provided
             creatorName: body.creatorName || '',
             creatorBio: body.creatorBio || '',
             // Initialize empty backers array
-            potentialBackers: [],
+            backers: [],
             duration: Number(body.duration) || 30,
             deadline: new Date(Date.now() + (body.duration || 30) * 24 * 60 * 60 * 1000),
             status: 'active',
@@ -105,22 +105,25 @@ export async function PATCH(request: NextRequest) {
         const db = client.db('beantown')
         const collection = db.collection('projects')
 
-        // Handle adding a potential backer
+        // Handle adding a backer
         if (body.addBacker && body.backerAddress && body.amount) {
-            const newBacker: PotentialBacker = {
+            const newBacker: Backer = {
                 address: body.backerAddress,
                 amount: Number(body.amount),
                 timestamp: new Date()
             }
 
-            // Add the backer to the potentialBackers array, using proper typing
+            // Add the backer to the backers array and increment backersCount
             await collection.updateOne(
                 { _id: new ObjectId(id) },
-                { $push: { potentialBackers: newBacker } as any }
+                {
+                    $push: { backers: newBacker as any },
+                    $inc: { backersCount: 1, raised: Number(body.amount) }
+                }
             )
 
             return NextResponse.json({
-                message: 'Potential backer added successfully'
+                message: 'Backer added successfully'
             })
         }
 

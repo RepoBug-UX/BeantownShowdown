@@ -52,7 +52,7 @@ const projects = [
     raised: 12000,
     goal: 15000,
     deadline: "2023-08-15",
-    backers: 56,
+    backersCount: 56,
     status: "active",
     image:
       "https://images.unsplash.com/photo-1624598389798-b6f7aa846fc9?q=80&w=500",
@@ -104,7 +104,7 @@ const projects = [
     raised: 8500,
     goal: 20000,
     deadline: "2023-09-30",
-    backers: 42,
+    backersCount: 42,
     status: "active",
     image:
       "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?q=80&w=500",
@@ -163,7 +163,7 @@ interface Project {
   raised: number;
   goal: number;
   deadline: string;
-  backers: number;
+  backersCount: number;
   status: string;
   image: string;
   creator?: string;

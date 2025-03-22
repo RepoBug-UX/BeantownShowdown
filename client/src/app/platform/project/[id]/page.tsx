@@ -30,7 +30,7 @@ import { Input } from "@/app/components/ui/input";
 import BackProject from "@/app/components/BackProject";
 
 // Define the Project interface
-interface PotentialBacker {
+interface Backer {
   address: string;
   amount: number;
   timestamp: string;
@@ -51,7 +51,7 @@ interface Project {
   category: string;
   fundingGoal: number;
   raised: number;
-  backers: number;
+  backersCount: number;
   deadline: string;
   status: string;
   image: string;
@@ -59,7 +59,7 @@ interface Project {
   creatorAddress: string;
   creatorName?: string;
   creatorBio?: string;
-  potentialBackers: PotentialBacker[];
+  backers: Backer[];
   // Other fields
   team?: any[];
   milestones?: Milestone[];
@@ -239,7 +239,9 @@ export default function ProjectPage() {
                   <div className="flex items-center">
                     <Users className="h-5 w-5 text-gray-400 mr-3" />
                     <div>
-                      <p className="font-medium">{project.backers} backers</p>
+                      <p className="font-medium">
+                        {project.backersCount} backers
+                      </p>
                       <p className="text-sm text-gray-500">
                         Support this project
                       </p>
@@ -296,9 +298,9 @@ export default function ProjectPage() {
 
           <TabsContent value="backers" className="space-y-6">
             <h2 className="text-2xl font-semibold mb-6">Project Backers</h2>
-            {project.potentialBackers && project.potentialBackers.length > 0 ? (
+            {project.backers && project.backers.length > 0 ? (
               <div className="space-y-4">
-                {project.potentialBackers.map((backer, index) => (
+                {project.backers.map((backer, index) => (
                   <div key={index} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">

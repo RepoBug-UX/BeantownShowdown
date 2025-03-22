@@ -37,7 +37,7 @@ interface Project {
   category: string;
   fundingGoal: number;
   raised: number;
-  backers: number;
+  backersCount: number;
   deadline: string;
   status: string;
   image: string;
