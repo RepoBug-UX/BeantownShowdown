@@ -4,17 +4,17 @@ pragma solidity ^0.8.18;
 // import {Test, console2} from "forge-std/Test.sol";
 // import "forge-std/Test.sol";
 import {Test, console} from "forge-std/Test.sol";
-import {fundingDao} from "../src/DFund.sol";
+import {DFund} from "../src/DFund.sol";
 
-contract fundingDaoTest is Test {
-    fundingDao public dao;
+contract DFundTest is Test {
+    DFund public dao;
     string[] milestones = ["Smart Contract", "Front End", "Back End"];
     uint256 fundingGoal = 100;
     uint256 duration = 100;
     uint256 index = 0;
 
     function setUp() public {
-        dao = new fundingDao(address(this), fundingGoal, duration, milestones);
+        dao = new DFund(address(this), fundingGoal, duration, milestones);
     }
 
     //Constructor tests
@@ -34,14 +34,14 @@ contract fundingDaoTest is Test {
     //modifier tests
 
     function testOnlyWhenFunded() public {
-        vm.expectRevert(fundingDao.notFunded.selector);
+        vm.expectRevert(DFund.notFunded.selector);
         dao.submit_milestone("test", index);
     }
 
     function testNotFrozen_afterVote() public {
         testVoteToFreeze_freeze();
 
-        vm.expectRevert(fundingDao.contractFrozen.selector);
+        vm.expectRevert(DFund.contractFrozen.selector);
         dao.donate{value: 1}();
     }
 
@@ -53,14 +53,14 @@ contract fundingDaoTest is Test {
     function testOnlyCreator() public {
         vm.prank(address(1));
 
-        vm.expectRevert(fundingDao.notCreator.selector);
+        vm.expectRevert(DFund.notCreator.selector);
         dao.submit_milestone("test", index);
     }
 
     function testOnlyFunder() public {
         vm.prank(address(1));
 
-        vm.expectRevert(fundingDao.notFunder.selector);
+        vm.expectRevert(DFund.notFunder.selector);
         dao.vote_to_freeze();
     }
 
@@ -108,7 +108,7 @@ contract fundingDaoTest is Test {
         testSubmitMilestone_insertsDetails();
         string memory milestone_submission = "test";
 
-        vm.expectRevert(fundingDao.AlreadySubmitted.selector);
+        vm.expectRevert(DFund.AlreadySubmitted.selector);
         dao.submit_milestone(milestone_submission, index);
     }
 
@@ -123,14 +123,14 @@ contract fundingDaoTest is Test {
     function testClaimMilestone_AlreadyClaimed() public {
         testClaimMilestone_incrementClaimedMilestones();
 
-        vm.expectRevert(fundingDao.AlreadyClaimed.selector);
+        vm.expectRevert(DFund.AlreadyClaimed.selector);
         dao.claim_milestone(index);
     }
 
     function testClaimMielstone_NotApprovedByFunders() public {
         testDonate_funded();
 
-        vm.expectRevert(fundingDao.NotApprovedByFunders.selector);
+        vm.expectRevert(DFund.NotApprovedByFunders.selector);
         dao.claim_milestone(index);
     }
 
