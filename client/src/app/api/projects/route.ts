@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
             createdAt: new Date(),
             milestones: body.milestones || [],
             updates: [],
+            upvotes: [] // Initialize upvotes as empty array
         }
 
         // Insert the new project
