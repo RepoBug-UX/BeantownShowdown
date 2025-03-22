@@ -25,9 +25,10 @@ import {
   PiggyBank,
   Clock,
 } from "lucide-react";
+import { Project as ProjectType } from "@/types/ProjectTypes";
 
-// Mock data for projects
-interface Project {
+// Interface for the dashboard project display
+interface DashboardProject {
   id: string;
   title: string;
   description: string;
@@ -41,90 +42,65 @@ interface Project {
 
 export default function Dashboard() {
   const { address, isConnected } = useAccount();
-  const [activeProjects, setActiveProjects] = useState<Project[]>([]);
-  const [fundraisingProjects, setFundraisingProjects] = useState<Project[]>([]);
+  const [activeProjects, setActiveProjects] = useState<DashboardProject[]>([]);
+  const [fundraisingProjects, setFundraisingProjects] = useState<
+    DashboardProject[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading data
     const loadData = async () => {
+      if (!address) return;
       setIsLoading(true);
 
-      // Mock fetch data - in a real app, this would be an API call
-      setTimeout(() => {
-        setActiveProjects([
-          {
-            id: "1",
-            title: "Community Garden Expansion",
-            description:
-              "Expanding the local community garden with new plots and irrigation system.",
-            raised: 12000,
-            goal: 15000,
-            deadline: "2023-08-15",
-            backersCount: 56,
-            status: "active",
-            image:
-              "https://images.unsplash.com/photo-1624598389798-b6f7aa846fc9?q=80&w=500",
-          },
-          {
-            id: "2",
-            title: "Neighborhood Playground",
-            description:
-              "Building a new playground with accessible equipment for all children.",
-            raised: 8500,
-            goal: 20000,
-            deadline: "2023-09-30",
-            backersCount: 42,
-            status: "active",
-            image:
-              "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?q=80&w=500",
-          },
-        ]);
+      try {
+        // Fetch all projects
+        const response = await fetch("/api/projects");
+        if (!response.ok) {
+          throw new Error("Failed to fetch projects");
+        }
 
-        setFundraisingProjects([
-          {
-            id: "3",
-            title: "Youth Coding Program",
-            description:
-              "Launching a coding program for underserved youth in the community.",
-            raised: 3000,
-            goal: 25000,
-            deadline: "2023-10-15",
-            backersCount: 18,
-            status: "active",
-            image:
-              "https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=500",
-          },
-          {
-            id: "4",
-            title: "Sustainable Energy Initiative",
-            description:
-              "Installing solar panels on community buildings to reduce energy costs.",
-            raised: 5000,
-            goal: 40000,
-            deadline: "2023-11-01",
-            backersCount: 23,
-            status: "active",
-            image:
-              "https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=500",
-          },
-          {
-            id: "5",
-            title: "Local Art Exhibition",
-            description:
-              "Organizing an exhibition to showcase local artists and their work.",
-            raised: 1200,
-            goal: 10000,
-            deadline: "2023-09-15",
-            backersCount: 8,
-            status: "active",
-            image:
-              "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=500",
-          },
-        ]);
+        const projects: ProjectType[] = await response.json();
 
+        // Filter projects where the user is the creator
+        const userProjects = projects
+          .filter((project) => project.creatorAddress === address)
+          .map((project) => ({
+            id: project._id as string,
+            title: project.title,
+            description: project.description,
+            raised: project.raised,
+            goal: project.fundingGoal,
+            deadline: project.deadline.toString(),
+            backersCount: project.backersCount,
+            status: project.status as "active" | "completed" | "drafting",
+            image: project.image,
+          }));
+
+        // Filter projects where the user is a backer
+        const backedProjects = projects
+          .filter((project) =>
+            project.backers.some((backer) => backer.address === address)
+          )
+          .map((project) => ({
+            id: project._id as string,
+            title: project.title,
+            description: project.description,
+            raised: project.raised,
+            goal: project.fundingGoal,
+            deadline: project.deadline.toString(),
+            backersCount: project.backersCount,
+            status: project.status as "active" | "completed" | "drafting",
+            image: project.image,
+          }));
+
+        setActiveProjects(userProjects);
+        setFundraisingProjects(backedProjects);
+      } catch (error) {
+        console.error("Error loading projects:", error);
+      } finally {
         setIsLoading(false);
-      }, 1000);
+      }
     };
 
     if (isConnected) {
