@@ -93,21 +93,39 @@ export default function CreateFundraiser() {
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // In a real app, you would submit this data to your blockchain
-    const campaignData: CrowdfundInfo = {
-      ...(formData as any),
+    // Create campaign data
+    const campaignData = {
+      ...formData,
       milestones,
-      campaignID: Date.now().toString(), // Generate a unique ID
-      isFunded: false,
-      isCompleted: false,
-      creator: formData.creator || "0x0000000000000000000000000000000000000000", // Default value
     };
 
-    console.log("Campaign data to submit:", campaignData);
-    // Here you would call your contract function to create the campaign
+    try {
+      // Call API to create project
+      const response = await fetch("/api/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(campaignData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create project");
+      }
+
+      const data = await response.json();
+      console.log("Project created successfully:", data);
+
+      // Redirect to the project page or dashboard
+      window.location.href = `/platform/project/${data.id}`;
+    } catch (error) {
+      console.error("Error creating project:", error);
+      // Here you would handle errors, e.g., show an error message
+    }
   };
 
   return (
@@ -209,7 +227,10 @@ export default function CreateFundraiser() {
                         if (file) {
                           const reader = new FileReader();
                           reader.onloadend = () => {
-                            setFormData({ ...formData, image: reader.result as string });
+                            setFormData({
+                              ...formData,
+                              image: reader.result as string,
+                            });
                           };
                           reader.readAsDataURL(file);
                         }

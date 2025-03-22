@@ -29,6 +29,23 @@ interface ExtendedTransactionDetails extends TransactionDetails {
   value?: string;
 }
 
+// Define the Project interface
+interface Project {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  fundingGoal: number;
+  raised: number;
+  backers: number;
+  deadline: string;
+  status: string;
+  image: string;
+  creator?: string;
+  milestones?: any[];
+  updates?: any[];
+}
+
 export default function BasicWallet() {
   const { address, isConnected } = useAccount();
   const [activeTab, setActiveTab] = useState("tokens");
@@ -39,6 +56,8 @@ export default function BasicWallet() {
   >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
+  const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
 
   useEffect(() => {
     if (address) {
@@ -48,6 +67,53 @@ export default function BasicWallet() {
       }, 1000);
     }
   }, [address]);
+
+  useEffect(() => {
+    // Fetch featured projects from the API
+    const fetchFeaturedProjects = async () => {
+      try {
+        setProjectsLoading(true);
+        const response = await fetch("/api/projects");
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch projects: ${response.status} ${response.statusText}`
+          );
+        }
+        const allProjects = await response.json();
+        console.log("Fetched projects:", allProjects);
+
+        // If we have projects, take the first 3 as featured
+        if (Array.isArray(allProjects) && allProjects.length > 0) {
+          setFeaturedProjects(allProjects.slice(0, 3));
+        } else {
+          console.log("No projects found or invalid response format");
+          setFeaturedProjects([]);
+        }
+      } catch (err) {
+        console.error("Error fetching featured projects:", err);
+        setFeaturedProjects([]);
+      } finally {
+        setProjectsLoading(false);
+      }
+    };
+
+    fetchFeaturedProjects();
+  }, []);
+
+  // Calculate days left until deadline
+  const calculateDaysLeft = (deadline: string): number => {
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+
+    // Make sure the deadline is in the future
+    if (deadlineDate <= now) {
+      return 0;
+    }
+
+    const diffTime = Math.abs(deadlineDate.getTime() - now.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
 
   const renderTabContent = () => {
     if (!isConnected) {
@@ -199,38 +265,105 @@ export default function BasicWallet() {
               Featured Projects
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3].map((project) => (
-                <Link href={`/platform/project/${project}`} key={project}>
-                  <Card className="border-0 shadow-sm h-full">
-                    <CardHeader>
-                      <CardTitle className="text-lg">
-                        Project {project}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="aspect-video bg-gray-100 rounded-md mb-4"></div>
-                      <Progress value={33} className="mb-2" />
-                      <div className="flex justify-between text-sm text-gray-500">
-                        <span>$33,000 raised</span>
-                        <span>30 days left</span>
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // In a real app, this would open a backing modal
-                          alert("Backing functionality would open here");
-                        }}
+              {projectsLoading ? (
+                <div className="col-span-full flex flex-col items-center justify-center py-16 px-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+                  <p className="text-gray-600 text-lg">
+                    Discovering featured projects...
+                  </p>
+                  <p className="text-gray-500 text-sm mt-2">
+                    We're finding the best projects for you
+                  </p>
+
+                  {/* Loading placeholder cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full mt-8">
+                    {[1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className="bg-gray-100 rounded-lg shadow-sm h-64 animate-pulse"
                       >
-                        Back this project
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </Link>
-              ))}
+                        <div className="h-32 bg-gray-200 rounded-t-lg"></div>
+                        <div className="p-4">
+                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : featuredProjects.length > 0 ? (
+                featuredProjects.map((project) => (
+                  <Link
+                    href={`/platform/project/${project._id}`}
+                    key={project._id}
+                  >
+                    <Card className="border-0 shadow-sm h-full hover:shadow-md transition-shadow duration-200">
+                      <CardHeader>
+                        <CardTitle className="text-lg">
+                          {project.title}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="aspect-video bg-gray-100 rounded-md mb-4 relative overflow-hidden">
+                          {project.image ? (
+                            <div className="w-full h-full">
+                              {project.image.startsWith("data:") ? (
+                                <img
+                                  src={project.image}
+                                  alt={project.title}
+                                  className="w-full h-full object-cover rounded-md"
+                                />
+                              ) : (
+                                <Image
+                                  src={project.image}
+                                  alt={project.title}
+                                  width={300}
+                                  height={200}
+                                  className="w-full h-full object-cover rounded-md"
+                                  priority
+                                />
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <Snowflake className="h-12 w-12 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <Progress
+                          value={(project.raised / project.fundingGoal) * 100}
+                          className="mb-2"
+                        />
+                        <div className="flex justify-between text-sm text-gray-500">
+                          <span>${project.raised.toFixed(2)} raised</span>
+                          <span>
+                            {calculateDaysLeft(project.deadline)} days left
+                          </span>
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            // In a real app, this would open a backing modal
+                            alert("Backing functionality would open here");
+                          }}
+                        >
+                          Back this project
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </Link>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-10">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No projects found
+                  </p>
+                </div>
+              )}
             </div>
           </section>
         </main>

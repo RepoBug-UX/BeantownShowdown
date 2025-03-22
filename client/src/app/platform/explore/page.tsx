@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button } from "@/app/components/ui/button";
@@ -15,101 +15,94 @@ import {
 } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
 import { Progress } from "@/app/components/ui/progress";
-import { Snowflake, Search, Menu, Filter } from "lucide-react";
+import { Snowflake, Search, Menu, Filter, Clock } from "lucide-react";
 import Navbar from "@/app/components/Navbar";
+
+// Define the Project interface
+interface Project {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  fundingGoal: number;
+  raised: number;
+  backers: number;
+  deadline: string;
+  status: string;
+  image: string;
+  creator?: string;
+  milestones?: any[];
+  updates?: any[];
+}
 
 export default function ExplorePage() {
   const { isConnected } = useAccount();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Mock project data
-  const projects = [
-    {
-      id: 1,
-      title: "Avalanche DeFi Hub",
-      category: "Technology",
-      description:
-        "A comprehensive dashboard for DeFi applications on Avalanche",
-      raised: 45000,
-      goal: 100000,
-      daysLeft: 15,
-      backers: 230,
-      image: "/images/defi.jpg",
-    },
-    {
-      id: 2,
-      title: "NFT Marketplace for Digital Artists",
-      category: "Art",
-      description:
-        "Empowering digital artists through affordable NFT minting and sales",
-      raised: 28000,
-      goal: 50000,
-      daysLeft: 22,
-      backers: 156,
-      image: "/images/art.jpg",
-    },
-    {
-      id: 3,
-      title: "GameFi Adventure Realm",
-      category: "Games",
-      description:
-        "Play-to-earn adventure game with immersive storyline and tokenized assets",
-      raised: 67000,
-      goal: 120000,
-      daysLeft: 8,
-      backers: 345,
-      image: "/images/games.jpg",
-    },
-    {
-      id: 4,
-      title: "DAO Governance Framework",
-      category: "Innovation",
-      description:
-        "Building the future of decentralized governance for community projects",
-      raised: 83000,
-      goal: 150000,
-      daysLeft: 19,
-      backers: 412,
-      image: "/images/dao.jpg",
-    },
-    {
-      id: 5,
-      title: "Sustainable Blockchain Initiative",
-      category: "Environment",
-      description:
-        "Reducing carbon footprint of blockchain operations through innovative solutions",
-      raised: 32000,
-      goal: 80000,
-      daysLeft: 28,
-      backers: 198,
-      image: "/images/environment.jpg",
-    },
-    {
-      id: 6,
-      title: "Community Music Platform",
-      category: "Music",
-      description:
-        "Decentralized streaming service that fairly compensates artists",
-      raised: 21000,
-      goal: 60000,
-      daysLeft: 11,
-      backers: 123,
-      image: "/images/music.jpg",
-    },
-  ];
+  useEffect(() => {
+    // Fetch projects from our API
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/projects");
+        if (!response.ok) {
+          throw new Error("Failed to fetch projects");
+        }
+        const data = await response.json();
+        setProjects(data);
+      } catch (err: any) {
+        console.error("Error fetching projects:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  // Format date to show days left
+  const calculateDaysLeft = (deadline: string): number => {
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    const diffTime = Math.abs(deadlineDate.getTime() - now.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
 
   const categories = [
     "all",
-    "Technology",
-    "Art",
-    "Games",
-    "Music",
-    "Film",
-    "Environment",
-    "Social",
-    "Innovation",
+    "tech",
+    "art",
+    "community",
+    "defi",
+    "gaming",
+    "other",
   ];
+
+  // For display purposes - map category values to readable labels
+  const getCategoryLabel = (category: string): string => {
+    switch (category) {
+      case "tech":
+        return "Technology";
+      case "art":
+        return "Art & Creative";
+      case "community":
+        return "Community";
+      case "defi":
+        return "DeFi";
+      case "gaming":
+        return "Gaming";
+      case "other":
+        return "Other";
+      default:
+        return "All Projects";
+    }
+  };
 
   // Filter projects based on category and search query
   const filteredProjects = projects.filter((project) => {
@@ -160,69 +153,89 @@ export default function ExplorePage() {
                 }
                 onClick={() => setActiveCategory(category)}
               >
-                {category.charAt(0).toUpperCase() + category.slice(1)}
+                {getCategoryLabel(category)}
               </Button>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.length > 0 ? (
-              filteredProjects.map((project) => (
-                <Link href={`/platform/project/${project.id}`} key={project.id}>
-                  <Card className="border-0 shadow-sm hover:shadow-md transition-shadow h-full">
-                    <CardHeader>
-                      <CardTitle className="text-lg font-semibold">
-                        {project.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="aspect-video bg-gray-100 rounded-md mb-4 overflow-hidden">
-                        {/* Placeholder for project image */}
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                          Project Image
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+              <p className="text-gray-600">Loading amazing projects...</p>
+              <p className="text-gray-500 text-sm mt-2">
+                This may take a moment
+              </p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-10 text-red-500">
+              Error loading projects: {error}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredProjects.length > 0 ? (
+                filteredProjects.map((project) => (
+                  <Link
+                    href={`/platform/project/${project._id}`}
+                    key={project._id}
+                    className="block"
+                  >
+                    <Card className="h-full hover:shadow-md transition-shadow">
+                      <CardContent className="p-0">
+                        <div className="aspect-video bg-gray-200 relative">
+                          {project.image ? (
+                            project.image.startsWith("data:") ? (
+                              <img
+                                src={project.image}
+                                alt={project.title}
+                                className="w-full h-full object-cover rounded-t-lg"
+                              />
+                            ) : (
+                              <Image
+                                src={project.image}
+                                alt={project.title}
+                                width={400}
+                                height={225}
+                                className="w-full h-full object-cover rounded-t-lg"
+                              />
+                            )
+                          ) : (
+                            <div className="flex items-center justify-center h-full bg-gray-100 rounded-t-lg">
+                              <Snowflake className="h-12 w-12 text-gray-400" />
+                            </div>
+                          )}
                         </div>
-                      </div>
-                      <p className="text-gray-600 mb-4 line-clamp-2">
-                        {project.description}
-                      </p>
-                      <Progress
-                        value={(project.raised / project.goal) * 100}
-                        className="mb-2"
-                      />
-                      <div className="flex justify-between text-sm text-gray-500 mb-3">
-                        <span>${project.raised.toLocaleString()} raised</span>
-                        <span>${project.goal.toLocaleString()} goal</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">
-                          {project.backers} backers
-                        </span>
-                        <span className="text-gray-500">
-                          {project.daysLeft} days left
-                        </span>
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button
-                        className="w-full"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // In a real app, this would open a backing modal
-                          alert("Backing functionality would open here");
-                        }}
-                      >
-                        Back this project
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </Link>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-10 text-gray-500">
-                No projects found matching your criteria.
-              </div>
-            )}
-          </div>
+                        <div className="p-5">
+                          <h3 className="font-semibold text-lg mb-2 line-clamp-1">
+                            {project.title}
+                          </h3>
+                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                            {project.description}
+                          </p>
+                          <Progress
+                            value={(project.raised / project.fundingGoal) * 100}
+                            className="h-2 mb-4"
+                          />
+                          <div className="flex justify-between items-center text-sm">
+                            <div className="font-semibold">
+                              ${project.raised?.toLocaleString()} raised
+                            </div>
+                            <div className="text-gray-500 flex items-center">
+                              <Clock className="h-4 w-4 mr-1" />
+                              {calculateDaysLeft(project.deadline)} days left
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-10 text-gray-500">
+                  No projects found matching your criteria.
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         <section className="bg-gray-50 p-8 rounded-lg mb-12">
