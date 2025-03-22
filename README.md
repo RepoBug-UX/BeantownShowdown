@@ -71,6 +71,13 @@ The Snowball project features a **Next.js frontend** that serves as the user int
 
 The frontend is designed for scalability, accessibility, and ease of use, with responsive design and integrations with Web3 technologies.
 
+## Libraries & Tools Used
+
+- **Wagmi**: A React hooks library for Ethereum used for wallet connection and account management.
+- **RainbowKit**: Provides the wallet connection button (ConnectButton) for easy wallet interactions.
+- **AvaCloud SDK**: Used to integrate Avalanche blockchain functionality with `@avalabs/avacloud-sdk`.
+- **Fuji Testnet**: A development and testing environment for deploying and testing smart contracts.
+
 ## Steps to Launch Snowball on Avalanche’s Layer 1 (L1)
 
 ### Step 1: Create Snowball Blockchain
