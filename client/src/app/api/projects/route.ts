@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import clientPromise from '@/app/lib/mongodb'
 import { ObjectId } from 'mongodb'
+import { Project, PotentialBacker } from '@/types/ProjectTypes'
 
 // GET handler for retrieving all projects or a specific project
 export async function GET(request: NextRequest) {
@@ -36,9 +37,9 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
 
         // Basic validation
-        if (!body.title || !body.description || !body.fundingGoal) {
+        if (!body.title || !body.description || !body.fundingGoal || !body.creator) {
             return NextResponse.json(
-                { error: 'Missing required fields' },
+                { error: 'Missing required fields (title, description, fundingGoal, creator)' },
                 { status: 400 }
             )
         }
@@ -48,18 +49,24 @@ export async function POST(request: NextRequest) {
         const collection = db.collection('projects')
 
         // Format the project data
-        const project = {
+        const project: Omit<Project, '_id'> = {
             title: body.title,
             description: body.description,
             category: body.category || 'Other',
             fundingGoal: Number(body.fundingGoal),
             raised: 0,
             backers: 0,
+            // Track creator address
+            creatorAddress: body.creator,
+            // Store creator details if provided
+            creatorName: body.creatorName || '',
+            creatorBio: body.creatorBio || '',
+            // Initialize empty backers array
+            potentialBackers: [],
             duration: Number(body.duration) || 30,
             deadline: new Date(Date.now() + (body.duration || 30) * 24 * 60 * 60 * 1000),
             status: 'active',
             image: body.image || '',
-            creator: body.creator || '',
             createdAt: new Date(),
             milestones: body.milestones || [],
             updates: [],
@@ -98,8 +105,27 @@ export async function PATCH(request: NextRequest) {
         const db = client.db('beantown')
         const collection = db.collection('projects')
 
-        // Prepare the update data
-        const updateData: any = {}
+        // Handle adding a potential backer
+        if (body.addBacker && body.backerAddress && body.amount) {
+            const newBacker: PotentialBacker = {
+                address: body.backerAddress,
+                amount: Number(body.amount),
+                timestamp: new Date()
+            }
+
+            // Add the backer to the potentialBackers array, using proper typing
+            await collection.updateOne(
+                { _id: new ObjectId(id) },
+                { $push: { potentialBackers: newBacker } as any }
+            )
+
+            return NextResponse.json({
+                message: 'Potential backer added successfully'
+            })
+        }
+
+        // Prepare the update data for other fields
+        const updateData: Partial<Project> = {}
 
         // Only include fields that are being updated
         if (body.title) updateData.title = body.title
@@ -114,19 +140,30 @@ export async function PATCH(request: NextRequest) {
         if (body.milestones) updateData.milestones = body.milestones
         if (body.status) updateData.status = body.status
 
-        // Update the project
-        const result = await collection.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: updateData }
-        )
+        // Update creator information if provided
+        if (body.creatorName) updateData.creatorName = body.creatorName
+        if (body.creatorBio) updateData.creatorBio = body.creatorBio
 
-        if (result.matchedCount === 0) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 })
+        // Only proceed with update if there are fields to update
+        if (Object.keys(updateData).length > 0) {
+            // Update the project
+            const result = await collection.updateOne(
+                { _id: new ObjectId(id) },
+                { $set: updateData }
+            )
+
+            if (result.matchedCount === 0) {
+                return NextResponse.json({ error: 'Project not found' }, { status: 404 })
+            }
+
+            return NextResponse.json({
+                message: 'Project updated successfully',
+                updated: result.modifiedCount > 0
+            })
         }
 
         return NextResponse.json({
-            message: 'Project updated successfully',
-            updated: result.modifiedCount > 0
+            message: 'No fields to update'
         })
     } catch (error) {
         console.error('Error updating project:', error)

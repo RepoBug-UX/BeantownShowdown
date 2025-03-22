@@ -3,7 +3,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Calendar, Users, Clock, Share2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  Users,
+  Clock,
+  Share2,
+  User,
+  Wallet,
+} from "lucide-react";
 import Image from "next/image";
 
 import Navbar from "@/app/components/Navbar";
@@ -17,8 +25,24 @@ import {
 } from "@/app/components/ui/tabs";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { Separator } from "@/app/components/ui/separator";
+import { useAccount } from "wagmi";
+import { Input } from "@/app/components/ui/input";
+import BackProject from "@/app/components/BackProject";
 
 // Define the Project interface
+interface PotentialBacker {
+  address: string;
+  amount: number;
+  timestamp: string;
+}
+
+interface Milestone {
+  description: string;
+  targetAmount: number;
+  isCompleted: boolean;
+  submissionDetails?: string;
+}
+
 interface Project {
   _id: string;
   title: string;
@@ -31,9 +55,14 @@ interface Project {
   deadline: string;
   status: string;
   image: string;
-  creator?: string;
+  // New fields for creator and backers
+  creatorAddress: string;
+  creatorName?: string;
+  creatorBio?: string;
+  potentialBackers: PotentialBacker[];
+  // Other fields
   team?: any[];
-  milestones?: any[];
+  milestones?: Milestone[];
   updates?: any[];
 }
 
@@ -42,6 +71,7 @@ export default function ProjectPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { address, isConnected } = useAccount();
 
   useEffect(() => {
     // Fetch the project data from the API
@@ -71,6 +101,20 @@ export default function ProjectPage() {
     const diffTime = Math.abs(deadlineDate.getTime() - now.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+  };
+
+  // Refresh project data
+  const refreshProjectData = async () => {
+    try {
+      const response = await fetch(`/api/projects?id=${id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch project");
+      }
+      const data = await response.json();
+      setProject(data);
+    } catch (err: any) {
+      console.error("Error refreshing project:", err);
+    }
   };
 
   if (loading) {
@@ -156,12 +200,18 @@ export default function ProjectPage() {
               )}
             </div>
 
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
+            {/* Creator information */}
+            <div className="flex items-center mb-6 p-4 border border-gray-200 rounded-lg">
+              <User className="h-10 w-10 text-gray-400 mr-3" />
               <div>
-                <p className="font-medium">{project.creator}</p>
-                <p className="text-sm text-gray-500">
-                  {project.backers} previous projects
+                <p className="font-medium">
+                  {project.creatorName || "Anonymous Creator"}
+                </p>
+                <p className="text-sm text-gray-500 mb-1">
+                  {project.creatorBio || "No bio provided"}
+                </p>
+                <p className="text-xs font-mono text-gray-400">
+                  {project.creatorAddress}
                 </p>
               </div>
             </div>
@@ -207,15 +257,15 @@ export default function ProjectPage() {
                   </div>
                 </div>
 
-                <Button
-                  className="w-full mb-3"
-                  onClick={() => {
-                    // In a real app, this would open a backing modal
-                    alert("Backing functionality would open here");
-                  }}
-                >
-                  Back this project
-                </Button>
+                {/* Back this project button - use the new component */}
+                <div className="mb-4">
+                  <BackProject
+                    projectId={id as string}
+                    projectTitle={project.title}
+                    onBackSuccess={refreshProjectData}
+                  />
+                </div>
+
                 <Button
                   variant="outline"
                   className="w-full flex items-center justify-center"
@@ -232,16 +282,49 @@ export default function ProjectPage() {
         <Tabs defaultValue="about" className="mb-12">
           <TabsList className="mb-6">
             <TabsTrigger value="about">About</TabsTrigger>
+            <TabsTrigger value="backers">Backers</TabsTrigger>
             <TabsTrigger value="updates">Updates</TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="milestones">Milestones</TabsTrigger>
           </TabsList>
 
           <TabsContent value="about" className="space-y-6">
             <h2 className="text-2xl font-semibold">About This Project</h2>
             <p className="text-gray-700 whitespace-pre-line">
-              {project.fullDescription}
+              {project.fullDescription || project.description}
             </p>
+          </TabsContent>
+
+          <TabsContent value="backers" className="space-y-6">
+            <h2 className="text-2xl font-semibold mb-6">Project Backers</h2>
+            {project.potentialBackers && project.potentialBackers.length > 0 ? (
+              <div className="space-y-4">
+                {project.potentialBackers.map((backer, index) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Wallet className="h-5 w-5 text-gray-400 mr-3" />
+                        <div>
+                          <p className="font-mono text-sm">
+                            {backer.address.slice(0, 6)}...
+                            {backer.address.slice(-4)}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(backer.timestamp).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="font-medium">
+                        ${backer.amount.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">
+                No backers yet. Be the first to back this project!
+              </p>
+            )}
           </TabsContent>
 
           <TabsContent value="updates" className="space-y-6">
@@ -264,22 +347,6 @@ export default function ProjectPage() {
             ) : (
               <p className="text-gray-500">No updates yet.</p>
             )}
-          </TabsContent>
-
-          <TabsContent value="team" className="space-y-6">
-            <h2 className="text-2xl font-semibold mb-6">Meet the Team</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {project.team &&
-                project.team.map((member: any, index: number) => (
-                  <div key={index} className="border rounded-lg p-6">
-                    <div className="flex flex-col items-center text-center">
-                      <div className="w-20 h-20 bg-gray-200 rounded-full mb-4"></div>
-                      <h3 className="font-medium mb-1">{member.name}</h3>
-                      <p className="text-sm text-gray-500">{member.role}</p>
-                    </div>
-                  </div>
-                ))}
-            </div>
           </TabsContent>
 
           <TabsContent value="milestones" className="space-y-6">

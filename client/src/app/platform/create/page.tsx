@@ -5,8 +5,17 @@ import type React from "react";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Upload, Snowflake, Plus, Trash2, Wallet } from "lucide-react";
+import {
+  Clock,
+  Upload,
+  Snowflake,
+  Plus,
+  Trash2,
+  Wallet,
+  AlertCircle,
+} from "lucide-react";
 import Navbar from "@/app/components/Navbar";
+import { useAccount } from "wagmi";
 
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -44,6 +53,8 @@ type CrowdfundInfo = {
 };
 
 export default function CreateFundraiser() {
+  const { address, isConnected } = useAccount();
+
   // State to track form data
   const [formData, setFormData] = useState<Partial<CrowdfundInfo>>({
     title: "",
@@ -53,13 +64,17 @@ export default function CreateFundraiser() {
     duration: 30,
     image: "",
     milestones: [],
-    creator: "", // This would typically be set from the connected wallet
+    creator: address || "", // Set creator to the connected wallet address
   });
 
   // State to track milestones
   const [milestones, setMilestones] = useState<Milestone[]>([
     { description: "", targetAmount: 0, isCompleted: false },
   ]);
+
+  // Add states for creator info
+  const [creatorName, setCreatorName] = useState("");
+  const [creatorBio, setCreatorBio] = useState("");
 
   // Handle adding a new milestone
   const addMilestone = () => {
@@ -96,10 +111,18 @@ export default function CreateFundraiser() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!isConnected) {
+      alert("Please connect your wallet to create a project");
+      return;
+    }
+
     // Create campaign data
     const campaignData = {
       ...formData,
       milestones,
+      creator: address, // Ensure we're using the current wallet address
+      creatorName, // Include creator name
+      creatorBio, // Include creator bio
     };
 
     try {
@@ -127,6 +150,25 @@ export default function CreateFundraiser() {
       // Here you would handle errors, e.g., show an error message
     }
   };
+
+  // If not connected, show a prompt to connect wallet
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-center min-h-[70vh] text-center">
+            <AlertCircle className="h-16 w-16 text-amber-500 mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Connect Wallet</h2>
+            <p className="text-gray-600 mb-6 max-w-md">
+              Please connect your wallet to start a new project and manage your
+              fundraising activities.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -168,42 +210,14 @@ export default function CreateFundraiser() {
 
                   <div>
                     <label
-                      htmlFor="category"
-                      className="block text-sm font-medium mb-2"
-                    >
-                      Category
-                    </label>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(value: string) =>
-                        setFormData({ ...formData, category: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="tech">Technology</SelectItem>
-                        <SelectItem value="art">Art & Creative</SelectItem>
-                        <SelectItem value="community">Community</SelectItem>
-                        <SelectItem value="defi">DeFi</SelectItem>
-                        <SelectItem value="gaming">Gaming</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label
                       htmlFor="description"
                       className="block text-sm font-medium mb-2"
                     >
-                      Project Description
+                      Short Description
                     </label>
                     <Textarea
                       id="description"
-                      placeholder="Describe your project in detail. What are you building? Why is it important?"
-                      rows={5}
+                      placeholder="Provide a brief overview of your project (max 200 characters)"
                       value={formData.description}
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                         setFormData({
@@ -211,12 +225,87 @@ export default function CreateFundraiser() {
                           description: e.target.value,
                         })
                       }
+                      className="resize-none"
+                      rows={4}
+                      maxLength={200}
                       required
                     />
                   </div>
 
+                  {/* Creator Information */}
                   <div>
-                    <label className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="creatorName"
+                      className="block text-sm font-medium mb-2"
+                    >
+                      Creator Name (Optional)
+                    </label>
+                    <Input
+                      id="creatorName"
+                      placeholder="Enter your name or organization name"
+                      value={creatorName}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setCreatorName(e.target.value)
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="creatorBio"
+                      className="block text-sm font-medium mb-2"
+                    >
+                      Creator Bio (Optional)
+                    </label>
+                    <Textarea
+                      id="creatorBio"
+                      placeholder="Tell potential backers about yourself or your team"
+                      value={creatorBio}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                        setCreatorBio(e.target.value)
+                      }
+                      className="resize-none"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="category"
+                      className="block text-sm font-medium mb-2"
+                    >
+                      Category
+                    </label>
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, category: value })
+                      }
+                    >
+                      <SelectTrigger id="category" className="w-full">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Art">Art</SelectItem>
+                        <SelectItem value="Technology">Technology</SelectItem>
+                        <SelectItem value="Games">Games</SelectItem>
+                        <SelectItem value="Film">Film & Video</SelectItem>
+                        <SelectItem value="Music">Music</SelectItem>
+                        <SelectItem value="Publishing">Publishing</SelectItem>
+                        <SelectItem value="Food">Food</SelectItem>
+                        <SelectItem value="Fashion">Fashion</SelectItem>
+                        <SelectItem value="Design">Design</SelectItem>
+                        <SelectItem value="Community">Community</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="image"
+                      className="block text-sm font-medium mb-2"
+                    >
                       Cover Image
                     </label>
                     <input
