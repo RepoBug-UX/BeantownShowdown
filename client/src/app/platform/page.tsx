@@ -183,9 +183,9 @@ export default function BasicWallet() {
               Fund innovative projects with blockchain simplicity
             </p>
             <div className="flex justify-center space-x-4">
-              <Button size="lg" onClick={() => setShowWallet(true)}>
-                Launch Project
-              </Button>
+              <Link href="/platform/create">
+                <Button size="lg">Launch Project</Button>
+              </Link>
               <Link href="/platform/explore">
                 <Button variant="outline" size="lg">
                   <Search className="mr-2 h-5 w-5" /> Explore

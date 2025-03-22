@@ -234,7 +234,9 @@ export default function ExplorePage() {
               Have a brilliant idea? Launch your project on Snowball and connect
               with backers passionate about innovation on Avalanche.
             </p>
-            <Button size="lg">Start a Project</Button>
+            <Link href="/platform/create">
+              <Button size="lg">Start a Project</Button>
+            </Link>
           </div>
         </section>
       </main>
