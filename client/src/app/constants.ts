@@ -1,8 +1,9 @@
 import { fuji } from "./chains/definitions/fuji";
 import { echo } from "./chains/definitions/echo";
 import { dispatch } from "./chains/definitions/dispatch";
+import { snowball } from "./chains/definitions/snowball";
 
-export const CHAINS = [fuji, echo, dispatch];
+export const CHAINS = [fuji, echo, dispatch, snowball];
 export const TOKENS = [
     {
         address: "native",
