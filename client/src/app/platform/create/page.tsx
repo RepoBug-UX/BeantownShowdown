@@ -201,36 +201,31 @@ export default function CreateFundraiser() {
                     <label className="block text-sm font-medium mb-2">
                       Cover Image
                     </label>
-                    <div
-                      className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => {
-                        // In a real implementation, this would open a file picker
-                        const imageUrl =
-                          "/placeholder.svg?height=300&width=600";
-                        setFormData({ ...formData, image: imageUrl });
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setFormData({ ...formData, image: reader.result as string });
+                          };
+                          reader.readAsDataURL(file);
+                        }
                       }}
-                    >
-                      {formData.image ? (
-                        <div className="relative h-48 w-full">
-                          <Image
-                            src={formData.image || "/placeholder.svg"}
-                            alt="Project cover"
-                            fill
-                            className="object-cover rounded-md"
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center">
-                          <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-500">
-                            Click to upload or drag and drop
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            PNG, JPG, GIF up to 10MB
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    />
+                    {formData.image && (
+                      <div className="relative h-48 w-full mt-2">
+                        <Image
+                          src={formData.image}
+                          alt="Project cover"
+                          fill
+                          className="object-cover rounded-md"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
