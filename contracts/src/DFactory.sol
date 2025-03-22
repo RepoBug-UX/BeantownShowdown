@@ -10,7 +10,7 @@ contract daoFactory {
     struct dao {
         address dao;
         address creator;
-        string uuid;
+        string campaignID;
     }
 
     /**
@@ -18,19 +18,19 @@ contract daoFactory {
      * @param _fundingGoal Amount to be raised in Rootoshi
      * @param _duration Duration of the project in blocks
      * @param _milestoneDescriptions Descriptions of the milstones to be completed
-     * @param _uuid The unique ID of the project in the database
+     * @param _campaignID The unique ID of the project in the database
      * @dev Launches a campaign and stores the details
      */
     function createCampaign(
         uint256 _fundingGoal,
         uint256 _duration,
         string[] memory _milestoneDescriptions,
-        string memory _uuid
+        string memory _campaignID
     ) external returns (address) {
         DFund temp = new DFund(msg.sender, _fundingGoal, _duration, _milestoneDescriptions);
 
         numberOfDaos[msg.sender] += 1;
-        userToAddress[msg.sender][numberOfDaos[msg.sender]] = dao(address(temp), msg.sender, _uuid);
+        userToAddress[msg.sender][numberOfDaos[msg.sender]] = dao(address(temp), msg.sender, _campaignID);
 
         return address(temp);
     }
