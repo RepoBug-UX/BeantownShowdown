@@ -72,16 +72,6 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
         </nav>
         <div className="flex items-center justify-end space-x-4">
           <ConnectButton />
-          {onMenuClick && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={onMenuClick}
-            >
-              <Menu className="h-6 w-6" />
-            </Button>
-          )}
         </div>
       </div>
     </header>
