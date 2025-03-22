@@ -5,8 +5,8 @@ import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { http, createStorage, cookieStorage } from 'wagmi';
-import { avalanche, avalancheFuji } from 'wagmi/chains';
 import { Chain, getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { avalanche, avalancheFuji } from 'wagmi/chains';
 
 const projectId = "glacier-starter-kit";
 
